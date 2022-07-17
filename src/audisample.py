@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 """
-    File: audisound.py
-    Module for Sample and Stream manager
+    File: audisample.py
+    Module for Sample mananment
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """

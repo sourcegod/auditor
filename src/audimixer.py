@@ -5,7 +5,7 @@
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """
-import audisound as ausnd
+import audisample as ausam
 import audistream as austr
 import audichannel as auchan
 import audiport as aup
@@ -247,7 +247,7 @@ class AudiMixer(CAudiList):
         0: no looping mode
         """
         
-        snd = ausnd.AudiSample(mode=1) # empty sample
+        snd = ausam.AudiSample(mode=1) # empty sample
         rate = 44100
         nbsamp = int(lensec * rate)
         snd = snd.tone(1, freq, nbsamp)
@@ -261,7 +261,7 @@ class AudiMixer(CAudiList):
        
     def create_sample(self, fname):
         # create new sound
-        snd = ausnd.AudiSample(mode=0, filename=fname)
+        snd = ausam.AudiSample(mode=0, filename=fname)
         self._sound_lst.append(snd)
 
         return snd
