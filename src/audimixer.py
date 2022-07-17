@@ -6,6 +6,7 @@
     Author: Coolbrother
 """
 import audisound as ausnd
+import audistream as austr
 import audichannel as auchan
 import audiport as aup
 
@@ -269,7 +270,7 @@ class AudiMixer(CAudiList):
 
     def create_stream(self, fname):
         # create new stream
-        snd = ausnd.AudiStream(filename=fname)
+        snd = austr.AudiStream(filename=fname)
         self._sound_lst.append(snd)
 
         return snd
