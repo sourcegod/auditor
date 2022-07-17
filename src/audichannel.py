@@ -1,0 +1,383 @@
+#! /usr/bin/python3
+"""
+File: audichannel.py:
+    Module Audichannel, for Channel and DSP managing
+    Date: Sun, 17/07/2022
+    Author: Coolbrother
+"""
+class DspEffect(object):
+    """ effect manager """
+    def __init__(self):
+        self._volume =1
+        self._panning =1
+        self._dsp_lst = []
+        # self._dsp_lst = ['dsp_010']
+
+    #-----------------------------------------
+
+    def dspvolume(self, wavebuf, leftvol, rightvol):
+        # set dsp volume
+        lst = []
+        # return wavebuf 
+        try:
+            for i in range(0, len(wavebuf), 2):
+                lst.append(wavebuf[i]*leftvol)
+                lst.append(wavebuf[i+1]*rightvol)
+        except IndexError:
+            # lst = []
+            print("voici: ",len(wavebuf))
+            curses.beep()
+
+        return lst
+
+    #-----------------------------------------
+
+    def dsp_pitch(self, wavebuf, val=32):
+        # set pitch shifting
+        max_val =32
+        lst = []
+        try:
+            for i in range(0, len(wavebuf), max_val):
+                lst0 = wavebuf[i:i+val]
+                lst.extend(lst0)
+        except IndexError:
+            # lst = []
+            pass
+
+        return lst
+
+    #-----------------------------------------
+
+
+    def dsp_test(self, wavebuf):
+        # set dsp test
+        
+        lst = []
+        """
+        # make a pitch
+        try:
+            for i in range(0, len(wavebuf), 16):
+                lst0 = wavebuf[i:i+8]
+                lst.extend(lst0)
+        except IndexError:
+            # lst = []
+            pass
+        """
+
+        return lst
+
+    #-----------------------------------------
+
+
+#========================================
+
+
+class AudiChannel(DspEffect):
+    """ channel manager """
+    def __init__(self, id):
+        DspEffect.__init__(self)
+        self.id = id
+        self._sound = None
+        self._playing =0
+        self._paused =0
+        self._active =0
+        self._mix_callback = None
+        self._maxvol =128.0
+        self._volume =1 # self._maxvol / self._maxvol
+        self._maxpan =127 # max panoramique volume
+        self._leftpan =1 # left channel volume of sample
+        self._rightpan =1 # right channel volume of sample
+        self._muted =0
+        self._leftmute =1 # for left channel mute
+        self._rightmute =1 # for right channel mute
+
+    #-----------------------------------------
+
+    def setmixcallback(self, mix_callback):
+        # init the mix callback function for channel
+        self._mix_callback = mix_callback
+
+    #-----------------------------------------
+
+    def setsound(self, sound):
+        # set sound to the channel
+        self._sound = sound
+
+    #-----------------------------------------
+
+    def get_sound(self):
+        """ return the sound from channel object
+        """
+
+        return self._sound
+
+    #-----------------------------------------
+
+    def play(self, snd, loops=0):
+        # play for channel
+        # loops -1: infinitly
+        # 0: no looping mode
+        # curses.beep()
+        if not snd:
+            return
+        self.stop() # stop previus sound
+        self._sound = snd
+        self._sound.set_loop_count(loops)
+        # self._sound.set_loop_mode(1)
+        self._sound.loop_manager()
+        start_pos = self._sound.get_start_position(0) # in frames
+        self._sound.set_position(start_pos)
+        # self._sound.active =1
+        self._active =1
+        self._playing =1
+        self._paused =0
+        if self._mix_callback:
+            # debug("je suis ici pour voir mixcallback")
+            self._mix_callback.start_thread()
+
+    #-----------------------------------------
+
+    def stop(self):
+        # stop channel
+        if self._sound:
+            # self._sound._active =0
+            self._active =0
+            self._sound.set_position(0)
+            self._playing =0
+            self._paused =0
+
+        #if self._mix_callback:
+        #     self._mix_callback.stop_thread()
+
+
+    #-----------------------------------------
+
+    def pause(self):
+        # pause channel
+        if self._sound:
+            self._active =0
+            self._playing =0
+            self._paused =1
+
+    #-----------------------------------------
+
+    def unpause(self):
+        # unpause channel
+        if self._sound:
+            self._active =1
+            self._playing =1
+            self._paused =0
+        if self._mix_callback:
+            self._mix_callback.start_thread()
+
+    #-----------------------------------------
+
+    def get_length(self, unit=0):
+        # channel length
+        val =0
+        if self._sound:
+            val = self._sound.get_length(unit)
+
+        return val
+    #-----------------------------------------
+    
+    def get_position(self, unit=0):
+        # channel position in frames samples, second, or bytes
+        val =0
+        if self._sound:
+            val = self._sound.get_position(unit)
+    
+        return val
+    #-----------------------------------------
+
+    def set_position(self, pos, unit=0):
+        # channel position
+        # set_position function take frames samples number
+        # frames samples, seconds or bytes
+        # unit=0: for frames samples
+        # unit=1: for seconds
+        # unit=2: for bytes
+        if self._sound:
+            self._sound.set_position(pos, unit)
+
+    #-----------------------------------------
+
+    def rewind(self, step=1):
+        # rewind channel, step in sec
+        curpos = int(self.get_position(1)) # in sec
+        self.set_position(curpos - step, 1) # in sec
+
+    #-----------------------------------------
+
+    def forward(self, step=1):
+        # forward channel, step in sec
+        curpos = int(self.get_position(1)) # in sec
+        curpos += step
+        # print("voici curpos: ", curpos)
+        self.set_position(curpos, 1) # in sec
+
+    #-----------------------------------------
+
+    def setstart(self):
+        self.set_position(0)
+
+    #-----------------------------------------
+
+    def setend(self):
+        len1 = self.get_length()
+        self.set_position(len1)
+    
+    #-----------------------------------------
+    
+    def isplaying(self):
+        # play state for this channel
+        return self._playing
+
+    #-----------------------------------------
+
+    def ispaused(self):
+        # pause state for this channel
+        return self._paused
+
+    #-----------------------------------------
+
+
+
+    def isactive(self):
+        # active state for this channel
+        return self._active
+
+    #-----------------------------------------
+
+    def setactive(self, active):
+        # set active state for this channel
+        self._active = active
+
+    #-----------------------------------------
+
+    def limitvalue(self, lim_left, lim_right, val):
+        # return value beetwen lim_left, lim_right
+        if val < lim_left:
+            val = lim_left
+        elif val > lim_right:
+            val = lim_right
+
+        return val
+
+    #-----------------------------------------
+    
+    def add_zeros(self, wave_buf, nb_zeros, type=16):
+        """ add nb_zero to the wave buffer
+        type =: 16, 24  or 32 bits
+        """
+        # wave_buf is a tuple containing signed short values
+        lst = [0] * nb_zeros
+        return wave_buf + lst
+
+    #-----------------------------------------
+
+    def getvolume(self):
+        # return channel volume
+        """
+        mute =0 # for both channel side
+        if self._muted:
+            return mute
+        else:
+            return self._volume
+        """
+        
+        return self._volume
+
+    #-----------------------------------------
+
+    def setvolume(self, vol):
+        # set the channel volume
+        self._volume = self.limitvalue(0, self._maxvol, vol)
+        self._volume /= self._maxvol
+        # self._dsp_lst.append('dsp_001') # volume effect id
+
+    #-----------------------------------------
+
+    def processvolume(self, wavebuf):
+        # process channel volume
+        return self.dspvolume(wavebuf, self._volume, self._volume)
+
+    #-----------------------------------------
+
+    def getpanning(self):
+        # return left and right channel for a sample
+        return (self._leftpan, self._rightpan)
+
+    #-----------------------------------------
+
+    def setpanning(self, leftpan=127, rightpan=127):
+        # set the channel panoramique
+        self._leftpan = self.limitvalue(0, self._maxpan, leftpan)
+        self._rightpan = self.limitvalue(0, self._maxpan, rightpan)
+        self._leftpan /= self._maxpan 
+        self._rightpan /= self._maxpan 
+
+    #-----------------------------------------
+
+    def processpanning(self, wavebuf):
+        # process channel panning
+        return self.dspvolume(wavebuf, self._leftpan, self._rightpan)
+
+    #-----------------------------------------
+
+    def getmute(self):
+        return (self._leftmute, self._rightmute)
+    
+    #-----------------------------------------
+
+    def setmute(self, muted=0, chanside=2):
+        # set channel mute
+        val=0 if muted else 1 # ternary operator
+        if chanside == 0: # left channel side
+            self._leftmute = val
+        elif chanside == 1: # right channel side
+            self._rightmute = val
+        elif chanside == 2: # both channel side
+            self._leftmute = val
+            self._rightmute = val
+
+        self._muted = muted
+
+
+    #-----------------------------------------
+        
+    def ismuted(self):
+        return self._muted
+    
+    #-----------------------------------------
+
+    def processmute(self, wavebuf):
+        # process channel panning
+        return self.dspvolume(wavebuf, self._leftmute, self._rightmute)
+
+    #-----------------------------------------
+
+    
+    def addeffect(self, id_dsp):
+        self._dsp_lst.append(id_dsp) # panning effect id
+
+    #-----------------------------------------
+        
+    def seteffect(self, wavebuf):
+        for item in self._dsp_lst:
+            if item == 'dsp_001': # volume
+                wavebuf = self.dspvolume(wavebuf, self._volume)
+            elif item == 'dsp_002':
+                wavebuf = self.dsppanning(wavebuf, self._leftpan, self._rightpan)
+            elif item == 'dsp_010': # test effect
+                wavebuf = self.dsp_test(wavebuf)
+         
+        return wavebuf
+    
+    #-----------------------------------------
+
+
+#========================================
+
+
+

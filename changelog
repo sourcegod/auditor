@@ -1,0 +1,111 @@
+Changelog for Auditor Engine
+Date: Sun, 17/07/2022
+Last update: Sun, 17/07/2022
+
+-- Version 0.7
+Date: Sun, 17/07/2022
+-- Adding: 
+-- In auditor module, Removing file path for the audio file in hard code, 
+coding the file path from the current script.
+-- Splitting one file in multiple modules, and multiple files.
+Modules are:
+audichannel.py, audimixer.py, audiport.py, 
+audisound.py and auditor.py.
+
+
+date: Sat, 16/07/2022
+    Fixing bugs for Python3, 
+    remove AlsaAudio object, 
+    adapting audio file name and path ...
+
+
+
+    Update: mardi, 03/11/15 06/49/27
+    Best performance with numpy library, 
+    no cracking when playing with multiple files audio
+    Python3 support
+
+
+    Date: dimanche, 16/08/15 14/50/21
+    New file to test wav streaming, cause last version is too slow, perhaps due to multiple call of struct module.
+    We go test with numpy array, and python array, event ctypes to see.
+    
+    Update: vendredi, 14/08/15 15/50/51
+    adding:
+    -- compatibility with python3
+    -- functions to audisoundbase object
+    loop_manager, is_looping, get_start_position, get_end_position,
+    add_zeros, get_params, set_params,
+    -- moving common functions from audisample and audistream object 
+    to audisoundbase object
+    -- rewriting read_data functions from audisample and audistream object
+
+    -- functions to portaudio driver object:
+    -- adding ring buffers to portaudio driver object
+    audio_callback,
+    add_channel, get_channel_list,  
+    get_version, get_version_text, 
+    get_default_driver_info, get_driver_info_by_index, get_device_info_by_driver_device_index, 
+    get_driver_list, get_driver_names, get_device_count,
+    get_default_input_device_info, get_default_output_device_info,
+    get_device_info_by_index, get_device_list, get_device_names,
+    get_device_by_driver, get_input_device_index, set_input_device_index,
+    get_output_device_index, set_output_device_index,
+    read_buffers, set_cache, get_cache
+    
+    Update: samedi, 01/08/15
+    auditor_04.py
+    Adding:
+    compatibility with Pyaudio for portaudio
+    AudiMixer object to manage channel list
+    AlsaAudioDriver for alsa driver,
+    PortAudioDriver, for portaudio
+    beep function to mixer object to generate square wave beep
+    crop_sample in AudiSample object
+    
+    Renaming objects like: 
+    AudiChannel, AudiSample, AudiStream, 
+    and renamming functions :
+    Copy_sample, mix_sample, get_position, set_position ...
+   Author: Coolbrother
+
+
+    Auditor_03.py:
+
+    Update: jeudi, 23/07/15
+    Cleanup the file, and isolate only klass concerning Auditor, not AuditorExp
+    Factoring and stabilise the code.
+
+    auditor_02.py:
+    
+    Update: samedi, 26/07/14 01/11/28 
+    Adding:
+    gen_wave and tone function to generate waveform like sine wave, square wave ...
+    emptysample, copy_sample, cut_sample, 
+    erase_sample, mix_sample, concatesample, 
+    delete_sample
+    get_raw_list, set_raw_list, mix_raw_list, 
+    change_raw_list
+    
+    Update: mercredi, 23/07/14 01/12/03
+    Adding:
+    - reverse sound function 
+    - loading the entire sound in memory in list of short
+    Author: Coolbrother
+
+    Update: lundi, 07/07/14 13/04/23
+    
+    Adding:
+
+    Add looping manager: loopcount, loopmode, looppoints
+    Channel, Sound object, volume, panning, effect processing
+    Author: Coolbrother
+
+    Update: samedi, 14/06/14 22/41/53
+    
+Date: vendredi, 05/07/13 03/13/14
+-- auditor_01.py : 
+Simple Audio engine for alsa 
+Date: vendredi, 05/07/13 03/13/14
+Author: Coolbrother
+
