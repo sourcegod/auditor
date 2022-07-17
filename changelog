@@ -5,6 +5,9 @@ Last update: Sun, 17/07/2022
 -- Version 0.7
 Date: Sun, 17/07/2022
 -- Adding: 
+-- Splitting audisound module to:
+audibase, audistream, audisample.
+
 -- In auditor module, Removing file path for the audio file in hard code, 
 coding the file path from the current script.
 -- Splitting one file in multiple modules, and multiple files.
