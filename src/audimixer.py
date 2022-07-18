@@ -31,13 +31,20 @@ class AudiMixer(object):
         self._thr_audio = None
         # self._audio_driver = AlsaAudioDriver()
         self.audio_driver = aup.PortAudioDriver()
+        # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
+        self._nchannels =1
+        self._rate = 44100
+        self._format =0
         self._in_type = np.int16
         self._out_type = np.int16
 
     #-----------------------------------------
 
     def init(self, nchannels=2, rate=44100, format=16):
+        self._nchannels = nchannels
+        self._rate = rate
+        self._format = format
         if self.audio_driver:
             self.audio_driver.init_audio(nchannels, rate, format)
             self.audio_driver.set_mixer(self)
@@ -60,9 +67,8 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, 1024), dtype='int32')
+        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='int32')
         out_buf = np.array([], dtype='int16')
-        size =0
         # debug("je pass ici")
         chan_num =0
         chan_count =0

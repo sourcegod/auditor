@@ -10,7 +10,6 @@ import time
 import wave
 import threading
 import pyaudio # for portaudio driver
-import numpy as np 
 
 #------------------------------------------------------------------------------
 
@@ -47,8 +46,6 @@ class PortAudioDriver(object):
         self._buf_lst = []
         self._max_buf = 32
         self._mixing =0
-        self.in_type = np.int16
-        self.out_type = np.int16
         self._mixer = None
 
 
@@ -61,8 +58,6 @@ class PortAudioDriver(object):
         
         self._out = pyaudio.PyAudio()
 
-        fname1 = "/home/com/audiotest/loops/f1.wav"
-        self.wf = wave.open(fname1, 'rb')
 
         # self._out.get_format_from_width(self.wf.getsampwidth())
         format = pyaudio.paInt16 
