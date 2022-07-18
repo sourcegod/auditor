@@ -11,6 +11,16 @@ import audistream as austr
 import audichannel as auchan
 import audiport as aup
 
+DEBUG =1 
+def debug(msg="", title="", bell=True):
+    if DEBUG:
+        print("%s: %s" %(title, msg))
+        if bell:
+            print("\a")
+    
+#------------------------------------------------------------------------------
+
+
 class AudiMixer(object):
     """ Mixer object to manage channel 
     """
