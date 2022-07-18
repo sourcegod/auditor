@@ -49,6 +49,7 @@ class PortAudioDriver(object):
         self._mixing =0
         self.in_type = np.int16
         self.out_type = np.int16
+        self._mixer = None
 
 
     #------------------------------------------------------------------------------
@@ -116,16 +117,28 @@ class PortAudioDriver(object):
 
     #-----------------------------------------
    
+    def set_mixer(self, mixer):
+        """
+        set the mixer for mixing data
+        from AudiPort object
+        """
+        
+        self._mixer = mixer
+
+
+    #-----------------------------------------
+
     def _audio_callback(self, in_data, frame_count, time_info, status):
         """ callback calling by portaudio
         """
 
+        data =None
         flag = pyaudio.paContinue
-        # data = self.wf.readframes(frame_count)
 
         # data =  self._get_mix_data()
-        data = self.read_buffers()
-        
+        # data = self.read_buffers()
+        if self._mixer:
+            data =  self._mixer.get_mix_data()
        
         # debug("je passe ici %d data_count" % len(data))
     
@@ -361,6 +374,7 @@ class PortAudioDriver(object):
 
     #-----------------------------------------
 
+    
     def _get_mix_data(self): 
         """ mix audio data from Portaudio object
         """

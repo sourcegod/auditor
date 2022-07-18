@@ -5,6 +5,7 @@
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """
+import numpy as np
 import audisample as ausam
 import audistream as austr
 import audichannel as auchan
@@ -20,12 +21,17 @@ class AudiMixer(object):
         self._thr_audio = None
         # self._audio_driver = AlsaAudioDriver()
         self.audio_driver = aup.PortAudioDriver()
+        self._buf_size =512
+        self._in_type = np.int16
+        self._out_type = np.int16
 
     #-----------------------------------------
 
     def init(self, nchannels=2, rate=44100, format=16):
         if self.audio_driver:
             self.audio_driver.init_audio(nchannels, rate, format)
+            self.audio_driver.set_mixer(self)
+
 
         # create reserved channel for beep
         self.chan_beep = self.create_channel(1000)
@@ -38,8 +44,98 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def get_mix_data(self): 
+        """ 
+        mixing audio data 
+        from AudiMixer object
+        """
+        
+        buf_lst = np.zeros((8, 1024), dtype='int32')
+        out_buf = np.array([], dtype='int16')
+        size =0
+        # debug("je pass ici")
+        chan_num =0
+        chan_count =0
 
-         
+        for (i, chan) in enumerate(self._chan_lst):
+            if chan.isactive():
+                snd = chan.get_sound()
+                curpos = snd.get_position(0) # in frames
+                endpos = snd.get_end_position(0) # in frames
+                if curpos >= endpos:
+                    # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
+                    snd.loop_manager()
+                    if not snd.is_looping():
+                        chan.setactive(0)
+                        continue
+                   
+                # whether buf_size =512 frames, so buf =512*4 = 2048 bytes
+                # cause buf in byte, one frame = 4 bytes, 2 signed short, 
+                # for 16 bits, 2 channels, 44100 rate,
+                
+                buf1 = snd.read_data(self._buf_size) 
+                if not buf1.size:
+                    debug("not buf1")
+                    chan.setactive(0)
+                    snd.set_play_count(0)
+                    continue
+                else:
+                    """
+                    len1 = self._buf_size * 2
+                    size = len(buf1)
+                    if size < len1:
+                        nb_zeros = len1 - size
+                        debug("Data too small, adding %d shorts filling with zeros" % nb_zeros)
+                        # buf1 = chan.add_zeros(buf1, nb_zeros)
+                        zero_lst = [0] * nb_zeros
+                        buf1 += zero_lst
+                    
+                    # if chan.ismuted():
+                    #    buf1 = chan.processmute(buf1)
+                    #vol = chan.getvolume()
+                    # buf1 = chan.processvolume(buf1)
+                    # (leftpan, rightpan) = chan.getpanning()
+                    # buf1 = chan.processpanning(buf1)
+                    # buf1 = chan.seteffect(buf1)
+                    """
+                    # buf_lst.append(buf1)
+                    len1 = buf1.size
+                    buf_lst[i] = buf1
+                    chan_num = i
+                    chan_count +=1
+                    # debug("voici i: %d et shape: %s" %(i, buf1.shape))
+                    # return
+        
+        # out of the loop
+        if buf_lst.size:
+            if chan_count == 1:
+                out_buf = buf_lst[chan_num].astype('int16')
+                # debug("voici len array %d" % len(out_buf))
+            elif chan_count >= 2:
+                # passing the type of array result to avoid copy with astype letter
+                line = np.sum(buf_lst, axis=0, dtype=self._out_type) # sum each column per line
+                
+                # use line.view to avoid copy array,
+                # and using np.clip to limit values
+                val_lim = 32767
+                # limit value in place to avoid copy
+                np.clip(line, -val_lim -1, val_lim, out=line)
+                out_buf = line # no copy
+                # debug("voici %d, %s" %(len(out_buf), out_buf.dtype))
+
+            if out_buf.size:
+                # debug("voici: %s" % out_buf)
+                self._mixing =1
+                return out_buf.tostring()
+        
+        else: # buf_lst is empty
+            self._mixing =0
+            # debug("Mixing finished...")
+            
+            return None
+
+    #-----------------------------------------
+              
     def beep(self, freq=440, lensec=1, loops=-2):
         """ beep square wave through mixer object
         freq: in hertz
