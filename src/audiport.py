@@ -47,6 +47,9 @@ class PortAudioDriver(object):
         self._buf_lst = []
         self._max_buf = 32
         self._mixing =0
+        self.in_type = np.int16
+        self.out_type = np.int16
+
 
     #------------------------------------------------------------------------------
 
@@ -362,14 +365,13 @@ class PortAudioDriver(object):
         """ mix audio data from Portaudio object
         """
         
-        # buf_lst = []
         buf_lst = np.zeros((8, 1024), dtype='int32')
-        # out_buf = []
-        # out_buf = np.array([], dtype='int16')
+        out_buf = np.array([], dtype='int16')
         size =0
         # debug("je pass ici")
         chan_num =0
         chan_count =0
+
         for (i, chan) in enumerate(self._chan_lst):
             if chan.isactive():
                 snd = chan.get_sound()
@@ -386,7 +388,6 @@ class PortAudioDriver(object):
                 # cause buf in byte, one frame = 4 bytes, 2 signed short, 
                 # for 16 bits, 2 channels, 44100 rate,
                 
-                # unpacking data
                 buf1 = snd.read_data(self._buf_size) 
                 if not buf1.size:
                     debug("not buf1")
@@ -394,14 +395,6 @@ class PortAudioDriver(object):
                     snd.set_play_count(0)
                     continue
                 else:
-                    
-                    """
-                    # we are unpacked binary, so size is in short, not in byte
-                    # so size = _buf_size*2 short
-                    # so buf1 contain a list of _buf_size * 2 signed short items
-                    Example: buf1 = list(struct.unpack('<'+size*'h', buf))
-                    """
-                    
                     """
                     len1 = self._buf_size * 2
                     size = len(buf1)
@@ -433,50 +426,26 @@ class PortAudioDriver(object):
             if chan_count == 1:
                 out_buf = buf_lst[chan_num].astype('int16')
                 # debug("voici len array %d" % len(out_buf))
-                # return
-            else:
-                x = np.sum(buf_lst, axis=0) # sum by column
+            elif chan_count >= 2:
+                # passing the type of array result to avoid copy with astype letter
+                x = np.sum(buf_lst, axis=0, dtype=self.out_type) # sum by column
                 
-                # right, but overkill
-                # out_buf = np.piecewise(x, [x < -32767, x > 32767], 
-                #    [-32767, 32767, lambda x: x]).astype('int16')
-                
-                # more simply
-                out_buf = np.select([x < -32767, x > 32767], 
-                    [-32767, 32767], x).astype('int16')
-                # or in two passes
-                # out_buf[out_buf < -32767] = -32767
-                # out_buf[out_buf > 32767] = 32767
-                # out_buf = out_buf.astype('int16')
+                # use x.view to avoid copy array,
+                # and using np.clip to limit values
+                val_lim = 32767
+                # limit value in place to avoid copy
+                np.clip(x, -val_lim -1, val_lim, out=x)
+                out_buf = x # no copy
                 # debug("voici %d, %s" %(len(out_buf), out_buf.dtype))
-                # return
+
             if out_buf.size:
                 # debug("voici: %s" % out_buf)
-                # size = len(out_buf) # normally _buf_size * 2  signed short
-                # st = struct.pack('<' +size*'h', *out_buf)
-                #myarray.fromlist(out_buf)
-                # myarray = out_buf
-                # st = myarray.tostring() # myarray.tostring()
-                # debug("voici out_buf, type: %s, shape: %s" %(out_buf.dtype, out_buf.shape))
-                # return
-                # out_buf[out_buf < -32767] = -32767
-                # out_buf[out_buf > 32767] = 32767
-                # out_buf.astype('int16')
-                """
-                for i in out_buf:
-                    if i < -32767 or i > 32767:
-                        debug("voici out_buf, i: %d, val: %d" %(i, out_buf[i]))
-                        #debug("voici out_buf, type: %s, shape: %s" %(out_buf.dtype, out_buf.shape))
-                # return
-                """
-                
                 self._mixing =1
-                
-                # return st
                 return out_buf.tostring()
-        else:
+        
+        else: # buf_lst is empty
             self._mixing =0
-            debug("Mixing finished...")
+            # debug("Mixing finished...")
             
             return None
 
@@ -598,5 +567,3 @@ class PortAudioDriver(object):
     #-----------------------------------------
   
 #========================================
-
-
