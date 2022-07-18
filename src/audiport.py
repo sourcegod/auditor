@@ -26,11 +26,9 @@ def debug(msg="", title="", bell=True):
     
 #------------------------------------------------------------------------------
 
-class PortAudioDriver(object):
-    """ portaudio driver manager """
+class BaseDriver(object):
+    """ Base Audio Driver """
     def __init__(self):
-        self._playing =0
-        self._audio_data = None
         self._buf_size =512
         self._out = None
         self._nchannels =0
@@ -38,108 +36,14 @@ class PortAudioDriver(object):
         self._rate =0
         self._nframes =0
         self._chan_lst = [] # list for channel object
-        self._audio_thread = None # object threading
         self._stream = None
         self._driver_index = None # equiv to host api
         self._input_device_index = None
         self._output_device_index = None
         self._buf_lst = []
-        self._max_buf = 32
-        self._mixing =0
-        self._mixer = None
-
 
     #------------------------------------------------------------------------------
 
-   
-    def init_audio(self, nchannels=2, rate=44100, format=8):
-        """ Open the portaudio device in playback mode through the portaudio driver object 
-        """
-        
-        self._out = pyaudio.PyAudio()
-
-
-        # self._out.get_format_from_width(self.wf.getsampwidth())
-        format = pyaudio.paInt16 
-        # self.format = format
-        
-        # self._audio_thread = CAudioThread(self._write_audio_data)
-       
-        # with callback
-        # """
-        self._stream = self._out.open(format=format,
-                    channels=nchannels,
-                    rate=rate,
-                    input=False,
-                    output=True,
-                    input_device_index = self._input_device_index,
-                    output_device_index = self._output_device_index,
-                    frames_per_buffer=self._buf_size,
-                    start=False,
-                    stream_callback=self._audio_callback)
-        # """
-
-        # with no callback
-        """ 
-        self._stream = self._out.open(format=format,
-                    channels=nchannels,
-                    rate=rate,
-                    input=False,
-                    output=True,
-                    input_device_index = self._input_device_index,
-                    output_device_index = self._output_device_index,
-                    frames_per_buffer=self._buf_size,
-                    start=False)
-        """
-
-
-    #-----------------------------------------
-
-    def close(self):
-        """ close audio driver from portaudio driver object        
-        """
-        
-        if self._stream:
-            self._stream.close()
-            self._out.terminate()
-            print("Closing audio driver")
-
-    #-----------------------------------------
-     
-    def __del__(self):
-        if self._audio_thread:
-            self._audio_thread.Stop()
-
-    #-----------------------------------------
-   
-    def set_mixer(self, mixer):
-        """
-        set the mixer for mixing data
-        from AudiPort object
-        """
-        
-        self._mixer = mixer
-
-
-    #-----------------------------------------
-
-    def _audio_callback(self, in_data, frame_count, time_info, status):
-        """ callback calling by portaudio
-        """
-
-        data =None
-        flag = pyaudio.paContinue
-
-        # data = self.read_buffers()
-        if self._mixer:
-            data =  self._mixer.get_mix_data()
-       
-        # debug("je passe ici %d data_count" % len(data))
-    
-        return (data, flag)
-
-    #-----------------------------------------
-   
     def get_version(self):
        """ return  portaudio version
        """
@@ -352,22 +256,111 @@ class PortAudioDriver(object):
 
     #-----------------------------------------
 
-    def add_channel(self, chan):
-        """ temporary, adding chan to the chan list
-        """
 
-        self._chan_lst.append(chan)
+#========================================
 
-    #-----------------------------------------
+class PortAudioDriver(BaseDriver):
+    """ portaudio driver manager """
+    def __init__(self):
+        super().__init__()
+        self._audio_thread = None # object threading
+        self._playing =0
+        self._audio_data = None
+        self._max_buf = 32
+        self._mixing =0
+        self._mixer = None
 
-    def get_channel_list(self):
-        """ temporary, get chan list
+    #------------------------------------------------------------------------------
+
+   
+    def init_audio(self, nchannels=2, rate=44100, format=8):
+        """ Open the portaudio device in playback mode through the portaudio driver object 
         """
         
-        return self._chan_lst
+        self._out = pyaudio.PyAudio()
+
+
+        # self._out.get_format_from_width(self.wf.getsampwidth())
+        format = pyaudio.paInt16 
+        # self.format = format
+        
+        # self._audio_thread = CAudioThread(self._write_audio_data)
+       
+        # with callback
+        # """
+        self._stream = self._out.open(format=format,
+                    channels=nchannels,
+                    rate=rate,
+                    input=False,
+                    output=True,
+                    input_device_index = self._input_device_index,
+                    output_device_index = self._output_device_index,
+                    frames_per_buffer=self._buf_size,
+                    start=False,
+                    stream_callback=self._audio_callback)
+        # """
+
+        # with no callback
+        """ 
+        self._stream = self._out.open(format=format,
+                    channels=nchannels,
+                    rate=rate,
+                    input=False,
+                    output=True,
+                    input_device_index = self._input_device_index,
+                    output_device_index = self._output_device_index,
+                    frames_per_buffer=self._buf_size,
+                    start=False)
+        """
+
 
     #-----------------------------------------
+
+    def close(self):
+        """ close audio driver from portaudio driver object        
+        """
+        
+        if self._stream:
+            self._stream.close()
+            self._out.terminate()
+            print("Closing audio driver")
+
+    #-----------------------------------------
+     
+    def __del__(self):
+        if self._audio_thread:
+            self._audio_thread.Stop()
+
+    #-----------------------------------------
+   
+    def set_mixer(self, mixer):
+        """
+        set the mixer for mixing data
+        from AudiPort object
+        """
+        
+        self._mixer = mixer
+
+
+    #-----------------------------------------
+
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """ callback calling by portaudio
+        """
+
+        data =None
+        flag = pyaudio.paContinue
+
+        # data = self.read_buffers()
+        if self._mixer:
+            data =  self._mixer.get_mix_data()
+       
+        # debug("je passe ici %d data_count" % len(data))
     
+        return (data, flag)
+
+    #-----------------------------------------
+   
     def _write_audio_data(self):
         """ write audio data from portaudio object
         """
@@ -459,13 +452,4 @@ class PortAudioDriver(object):
    
     #-----------------------------------------
    
-   
-    def get_nb_chan_active(self):
-        # return number of active channels
-        lst = [chan for chan in self._chan_lst if chan.isactive()]
-        
-        return len(lst)
-
-    #-----------------------------------------
-  
 #========================================

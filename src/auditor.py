@@ -33,8 +33,11 @@ def debug(msg="", title="", bell=True):
 #------------------------------------------------------------------------------
 
 class Auditor(object):
-    """ main object auditor 
+    """ 
+    main object auditor 
+    from Auditor object
     """
+
     def __init__(self):
         self.mixer = aumix.AudiMixer()
 

@@ -195,7 +195,6 @@ class AudiMixer(object):
     def create_channel(self, id):
         # create channel object
         chan = auchan.AudiChannel(id)
-        self.audio_driver.add_channel(chan)
         chan.setmixcallback(self.audio_driver)
         self._chan_lst.append(chan)
         
