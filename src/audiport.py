@@ -266,7 +266,7 @@ class PortAudioDriver(BaseDriver):
         self._playing =0
         self._audio_data = None
         self._max_buf = 32 # for caching
-        self._buf_lst = [] # for caching
+        self._cache_lst = [] # for caching
         self._mixing =0
         self._mixer = None
 
@@ -351,7 +351,11 @@ class PortAudioDriver(BaseDriver):
         flag = pyaudio.paContinue
 
         # data = self.read_buffers()
-        if self._mixer:
+        if self._cache_lst:
+            data = self._cache_lst[0]
+            # debug("Caching here...")
+            self._cache_lst = []
+        elif self._mixer:
             data =  self._mixer.get_mix_data()
        
         # debug("je passe ici %d data_count" % len(data))
@@ -390,29 +394,31 @@ class PortAudioDriver(BaseDriver):
         if not self._mixer: return
         if self._mixing:
             data = self._mixer.get_mix_data()
-            self._buf_lst.append(data)
+            self._cache_lst.append(data)
 
-        if self._buf_lst:
-            res = self._buf_lst.pop(0)
+        if self._cache_lst:
+            res = self._cache_lst.pop(0)
         
         return res
     #-----------------------------------------
  
     def set_cache(self):
-        """ set caching buffer from portaudio object
         """
-        self._buf_lst = []
-        for i in range(self._max_buf):
+        set audio buffer cache
+        from portaudio object
+        """
+        self._cache_lst = []
+        data = None
+        # for i in range(self._max_buf):
+        if 1:
             data = self._mixer.get_mix_data()
-            if data:
-                self._buf_lst.append(data)
-            else:
-                break
+            if data: self._cache_lst.append(data)
+            # else: break
         
         # little pause
         time.sleep(0.1)
         
-        return self._buf_lst
+        return data
 
     #-----------------------------------------
     
@@ -420,7 +426,7 @@ class PortAudioDriver(BaseDriver):
         """ return caching buffer from portaudio object
         """
         
-        return self._buf_lst
+        return self._cache_lst
 
     #-----------------------------------------
 
@@ -433,11 +439,12 @@ class PortAudioDriver(BaseDriver):
         if not self._stream.is_active() or not self._playing:
             self._stream.stop_stream()
             if self.set_cache():
+            # if 1:
                 # debug("After Caching...")
-                # debug("voici len buf_lst: %d" % len(self._buf_lst))
+                # debug("voici len buf_lst: %d" % len(self._cache_lst))
                 self._stream.start_stream()
                 self._playing =1
-            # debug("je starte")
+                # debug("je starte")
 
     #-----------------------------------------
 
