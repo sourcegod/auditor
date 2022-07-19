@@ -40,7 +40,6 @@ class BaseDriver(object):
         self._driver_index = None # equiv to host api
         self._input_device_index = None
         self._output_device_index = None
-        self._buf_lst = []
 
     #------------------------------------------------------------------------------
 
@@ -266,7 +265,8 @@ class PortAudioDriver(BaseDriver):
         self._audio_thread = None # object threading
         self._playing =0
         self._audio_data = None
-        self._max_buf = 32
+        self._max_buf = 32 # for caching
+        self._buf_lst = [] # for caching
         self._mixing =0
         self._mixer = None
 
@@ -340,7 +340,6 @@ class PortAudioDriver(BaseDriver):
         """
         
         self._mixer = mixer
-
 
     #-----------------------------------------
 
@@ -434,6 +433,7 @@ class PortAudioDriver(BaseDriver):
         if not self._stream.is_active() or not self._playing:
             self._stream.stop_stream()
             if self.set_cache():
+                # debug("After Caching...")
                 # debug("voici len buf_lst: %d" % len(self._buf_lst))
                 self._stream.start_stream()
                 self._playing =1

@@ -90,8 +90,8 @@ snd6 = mixer.create_stream(fname5)
 
 # snd4 = snd3
 chan1 = mixer.create_channel(1)
-# chan1.setvolume(16)
-# chan1.setpanning(127, 0)
+# chan1.set_volume(16)
+# chan1.set_panning(127, 0)
 chan2 = mixer.create_channel(2)
 chan3 = mixer.create_channel(3)
 chan4 = mixer.create_channel(4)

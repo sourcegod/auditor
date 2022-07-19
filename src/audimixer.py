@@ -76,7 +76,7 @@ class AudiMixer(object):
         self._mixing =0
 
         for (i, chan) in enumerate(self._chan_lst):
-            if chan.isactive():
+            if chan.is_active():
                 snd = chan.get_sound()
                 curpos = snd.get_position(0) # in frames
                 endpos = snd.get_end_position(0) # in frames
@@ -84,7 +84,7 @@ class AudiMixer(object):
                     # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
                     snd.loop_manager()
                     if not snd.is_looping():
-                        chan.setactive(0)
+                        chan.set_active(0)
                         continue
                    
                 # whether buf_size =512 frames, so buf =512*4 = 2048 bytes
@@ -94,7 +94,7 @@ class AudiMixer(object):
                 buf1 = snd.read_data(self._buf_size) 
                 if not buf1.size:
                     debug("not buf1")
-                    chan.setactive(0)
+                    chan.set_active(0)
                     snd.set_play_count(0)
                     continue
                 else:
@@ -108,21 +108,21 @@ class AudiMixer(object):
                         zero_lst = [0] * nb_zeros
                         buf1 += zero_lst
                     
-                    # if chan.ismuted():
-                    #    buf1 = chan.processmute(buf1)
-                    #vol = chan.getvolume()
-                    # buf1 = chan.processvolume(buf1)
+                    # if chan.is_muted():
+                    #    buf1 = chan.process_mute(buf1)
+                    #vol = chan.get_volume()
+                    # buf1 = chan.process_volume(buf1)
                     # (leftpan, rightpan) = chan.getpanning()
-                    # buf1 = chan.processpanning(buf1)
-                    # buf1 = chan.seteffect(buf1)
+                    # buf1 = chan.process_panning(buf1)
+                    # buf1 = chan.set_effect(buf1)
                     """
+                    
                     # buf_lst.append(buf1)
                     len1 = buf1.size
                     buf_lst[i] = buf1
                     chan_num = i
                     chan_count +=1
                     # debug("voici i: %d et shape: %s" %(i, buf1.shape))
-                    # return
         
         # out of the loop
         if buf_lst.size:
@@ -201,7 +201,7 @@ class AudiMixer(object):
     def create_channel(self, id):
         # create channel object
         chan = auchan.AudiChannel(id)
-        chan.setmixcallback(self.audio_driver)
+        chan.set_mix_callback(self.audio_driver)
         self._chan_lst.append(chan)
         
         return chan

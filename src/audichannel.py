@@ -15,7 +15,7 @@ class DspEffect(object):
 
     #-----------------------------------------
 
-    def dspvolume(self, wavebuf, leftvol, rightvol):
+    def dsp_volume(self, wavebuf, leftvol, rightvol):
         # set dsp volume
         lst = []
         # return wavebuf 
@@ -47,7 +47,6 @@ class DspEffect(object):
         return lst
 
     #-----------------------------------------
-
 
     def dsp_test(self, wavebuf):
         # set dsp test
@@ -93,13 +92,13 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def setmixcallback(self, mix_callback):
+    def set_mix_callback(self, mix_callback):
         # init the mix callback function for channel
         self._mix_callback = mix_callback
 
     #-----------------------------------------
 
-    def setsound(self, sound):
+    def set_sound(self, sound):
         # set sound to the channel
         self._sound = sound
 
@@ -218,44 +217,42 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def setstart(self):
+    def set_start(self):
         self.set_position(0)
 
     #-----------------------------------------
 
-    def setend(self):
+    def set_end(self):
         len1 = self.get_length()
         self.set_position(len1)
     
     #-----------------------------------------
     
-    def isplaying(self):
+    def is_playing(self):
         # play state for this channel
         return self._playing
 
     #-----------------------------------------
 
-    def ispaused(self):
+    def is_paused(self):
         # pause state for this channel
         return self._paused
 
     #-----------------------------------------
 
-
-
-    def isactive(self):
+    def is_active(self):
         # active state for this channel
         return self._active
 
     #-----------------------------------------
 
-    def setactive(self, active):
+    def set_active(self, active):
         # set active state for this channel
         self._active = active
 
     #-----------------------------------------
 
-    def limitvalue(self, lim_left, lim_right, val):
+    def limit_value(self, lim_left, lim_right, val):
         # return value beetwen lim_left, lim_right
         if val < lim_left:
             val = lim_left
@@ -276,7 +273,7 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def getvolume(self):
+    def get_volume(self):
         # return channel volume
         """
         mute =0 # for both channel side
@@ -290,7 +287,7 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def setvolume(self, vol):
+    def set_volume(self, vol):
         # set the channel volume
         self._volume = self.limitvalue(0, self._maxvol, vol)
         self._volume /= self._maxvol
@@ -298,19 +295,19 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def processvolume(self, wavebuf):
+    def process_volume(self, wavebuf):
         # process channel volume
-        return self.dspvolume(wavebuf, self._volume, self._volume)
+        return self.dsp_volume(wavebuf, self._volume, self._volume)
 
     #-----------------------------------------
 
-    def getpanning(self):
+    def get_panning(self):
         # return left and right channel for a sample
         return (self._leftpan, self._rightpan)
 
     #-----------------------------------------
 
-    def setpanning(self, leftpan=127, rightpan=127):
+    def set_panning(self, leftpan=127, rightpan=127):
         # set the channel panoramique
         self._leftpan = self.limitvalue(0, self._maxpan, leftpan)
         self._rightpan = self.limitvalue(0, self._maxpan, rightpan)
@@ -319,18 +316,18 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def processpanning(self, wavebuf):
+    def process_panning(self, wavebuf):
         # process channel panning
-        return self.dspvolume(wavebuf, self._leftpan, self._rightpan)
+        return self.dsp_volume(wavebuf, self._leftpan, self._rightpan)
 
     #-----------------------------------------
 
-    def getmute(self):
+    def get_mute(self):
         return (self._leftmute, self._rightmute)
     
     #-----------------------------------------
 
-    def setmute(self, muted=0, chanside=2):
+    def set_mute(self, muted=0, chanside=2):
         # set channel mute
         val=0 if muted else 1 # ternary operator
         if chanside == 0: # left channel side
@@ -346,29 +343,29 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
         
-    def ismuted(self):
+    def is_muted(self):
         return self._muted
     
     #-----------------------------------------
 
-    def processmute(self, wavebuf):
+    def process_mute(self, wavebuf):
         # process channel panning
-        return self.dspvolume(wavebuf, self._leftmute, self._rightmute)
+        return self.dsp_volume(wavebuf, self._leftmute, self._rightmute)
 
     #-----------------------------------------
 
     
-    def addeffect(self, id_dsp):
+    def add_effect(self, id_dsp):
         self._dsp_lst.append(id_dsp) # panning effect id
 
     #-----------------------------------------
         
-    def seteffect(self, wavebuf):
+    def set_effect(self, wavebuf):
         for item in self._dsp_lst:
             if item == 'dsp_001': # volume
-                wavebuf = self.dspvolume(wavebuf, self._volume)
+                wavebuf = self.dsp_volume(wavebuf, self._volume)
             elif item == 'dsp_002':
-                wavebuf = self.dsppanning(wavebuf, self._leftpan, self._rightpan)
+                wavebuf = self.dsp_panning(wavebuf, self._leftpan, self._rightpan)
             elif item == 'dsp_010': # test effect
                 wavebuf = self.dsp_test(wavebuf)
          
