@@ -281,7 +281,7 @@ class PortAudioDriver(BaseDriver):
 
 
         # self._out.get_format_from_width(self.wf.getsampwidth())
-        format = pyaudio.paInt16 
+        format = pyaudio.paInt16
         # self.format = format
         
         # self._audio_thread = CAudioThread(self._write_audio_data)

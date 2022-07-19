@@ -68,7 +68,7 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='int64')
+        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='float64')
         out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")
         chan_num =0
@@ -119,6 +119,10 @@ class AudiMixer(object):
                     
                     # buf_lst.append(buf1)
                     len1 = buf1.size
+                    # buf1 = buf1 /2
+                    # FIXIT: we cannot modify array that is in readonly, so we copy
+                    # to avoid saturation when summing, we divide the amplitude
+                    buf1 = buf1 / 2
                     buf_lst[i] = buf1
                     chan_num = i
                     chan_count +=1
@@ -135,6 +139,7 @@ class AudiMixer(object):
                 # out_buf = buf_lst[chan_num].view(self._out_type)
             elif chan_count >= 2:
                 # passing the type of array result to avoid copy with astype letter
+               
                 line = np.sum(buf_lst, axis=0, dtype=self._out_type) # sum each column per line
                 
                 # use line.view to avoid copy array,
