@@ -38,6 +38,7 @@ class AudiMixer(object):
         self._format =0
         self._in_type = np.int16
         self._out_type = np.int16
+        self._mixing =0
 
     #-----------------------------------------
 
@@ -67,11 +68,12 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='int32')
-        out_buf = np.array([], dtype='int16')
+        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='int64')
+        out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")
         chan_num =0
         chan_count =0
+        self._mixing =0
 
         for (i, chan) in enumerate(self._chan_lst):
             if chan.isactive():
@@ -124,9 +126,13 @@ class AudiMixer(object):
         
         # out of the loop
         if buf_lst.size:
-            if chan_count == 1:
+            if chan_count == 0: # no more audio data
+                self._mixing =0
+                return
+            elif chan_count == 1: # no copy data
                 out_buf = buf_lst[chan_num].astype('int16')
-                # debug("voici len array %d" % len(out_buf))
+                # no copy, but very bad sound
+                # out_buf = buf_lst[chan_num].view(self._out_type)
             elif chan_count >= 2:
                 # passing the type of array result to avoid copy with astype letter
                 line = np.sum(buf_lst, axis=0, dtype=self._out_type) # sum each column per line
