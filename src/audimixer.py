@@ -39,6 +39,8 @@ class AudiMixer(object):
         self._in_type = np.int16
         self._out_type = np.int16
         self._mixing =0
+        self._max_int16 = 32767
+
 
     #-----------------------------------------
 
@@ -68,7 +70,8 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype='float64')
+        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
+        buf1 = np.array([], dtype=np.float32)
         out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")
         chan_num =0
@@ -119,10 +122,12 @@ class AudiMixer(object):
                     
                     # buf_lst.append(buf1)
                     len1 = buf1.size
-                    # buf1 = buf1 /2
-                    # FIXIT: we cannot modify array that is in readonly, so we copy
+                    
+                    # FIX: we cannot modify array that is in readonly, so we copy
                     # to avoid saturation when summing, we divide the amplitude
-                    buf1 = buf1 / 2
+                    # buf1 = buf1 / 2
+                    # print("voici buf1 type: ",buf1.dtype)
+                    # print("values: ", buf1[:10])
                     buf_lst[i] = buf1
                     chan_num = i
                     chan_count +=1
@@ -134,13 +139,14 @@ class AudiMixer(object):
                 self._mixing =0
                 return
             elif chan_count == 1: # no copy data
-                out_buf = buf_lst[chan_num].astype('int16')
+                out_buf = buf_lst[chan_num] # (buf_lst[chan_num] * 32767).astype('int16')
+                # print("out_buf: ", out_buf[512:522])
                 # no copy, but very bad sound
                 # out_buf = buf_lst[chan_num].view(self._out_type)
             elif chan_count >= 2:
                 # passing the type of array result to avoid copy with astype letter
                
-                line = np.sum(buf_lst, axis=0, dtype=self._out_type) # sum each column per line
+                line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
                 
                 # use line.view to avoid copy array,
                 # and using np.clip to limit values
@@ -153,7 +159,10 @@ class AudiMixer(object):
             if out_buf.size:
                 # debug("voici: %s" % out_buf)
                 self._mixing =1
-                return out_buf.tostring()
+                
+                # avoid copy
+                return (out_buf * self._max_int16).astype(np.int16).tostring()
+                # return out_buf.tostring()
         
         else: # buf_lst is empty
             self._mixing =0

@@ -93,6 +93,9 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # struct.unpack return a tuple, must be converted in list
         # self._wavbuf_lst = list(struct.unpack('<'+size*'h', wave_data))
         self._wavbuf_arr = np.frombuffer(wave_data, dtype='int16')
+        # no type change, to avoid original sound modifications in place
+        self._wavbuf_arr = self._wavbuf_arr.astype(np.float32, order='C') / 32768.0
+
         # self._length = len(self._wavbuf_lst)
         self._length = self._nframes # in frames
         

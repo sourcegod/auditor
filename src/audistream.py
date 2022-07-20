@@ -140,7 +140,8 @@ class AudiStream(AudiSoundBase):
                 # debug("voici len_buf %d, nb_zeros: %d, et total buf: %d" %(len(buf_lst), nb_zeros, len(self._wavbuf_lst)))
                 self._curpos += nb_frames1
 
-        # return self._wavbuf_lst
+        # convert in float for more manip
+        self._buf_arr = self._buf_arr.astype(np.float32, order='C') / 32768.0
         return self._buf_arr
 
     #-----------------------------------------
