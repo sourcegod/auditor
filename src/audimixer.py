@@ -146,13 +146,19 @@ class AudiMixer(object):
             elif chan_count >= 2:
                 # passing the type of array result to avoid copy with astype letter
                
+                # no copy
+                for buf in buf_lst: buf /=2
                 line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
                 
+                """
+                # No more necessary
                 # use line.view to avoid copy array,
                 # and using np.clip to limit values
                 val_lim = 32767
                 # limit value in place to avoid copy
                 np.clip(line, -val_lim -1, val_lim, out=line)
+                """
+                
                 out_buf = line # no copy
                 # debug("voici %d, %s" %(len(out_buf), out_buf.dtype))
 
