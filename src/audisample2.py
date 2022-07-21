@@ -56,44 +56,12 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         from audisample object
         """
 
-        self._filename = filename
-        wav_data = None        
+        wav_data = None
+        sf_info = None
 
-        """
-        try:
-            # self._wavfile = wave.open(self._filename, 'rb')
-            self._wavfile = wave.open(self._filename, 'rb')
-        except IOError:
-            print("Error: unable to open file: %s" % self._filename)
-            return
-        """
-
-        """
-        self._nchannels = self._wavfile.getnchannels()
-        self._sampwidth = self._wavfile.getsampwidth()
-        self._rate = self._wavfile.getframerate()
-        self._nframes = self._wavfile.getnframes()
-        """
-
-        """
-        # duration = nframes / rate in second
-        # length in second
-        # length = (self._nchannels * self._sampwidth * self.nframes) / 
-        # (self._nchannels * self._sampwidth * self._rate)
-        # equiv': self._length = self._nframes / float(self._rate)
-        try:
-            wav_data = self._wavfile.readframes(self._nframes)
-            self._wavfile.close()
-        except IOError:
-            print("Error: unable to load in memory wave file: %s" % self._filename)
-            self._wavfile.close()
-            return
-        """    
- 
         try: 
             sf_info = sf.info(filename)
         except RuntimeError as err:
-            sf_info = None
             print("Error info, unable to open file: ", err)
             return
 
@@ -105,13 +73,14 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # for 2 channels, 16 bits
         
         if sf_info:
+            self._filename = filename
             self._nchannels = sf_info.channels
             # self._sampwidth =0
             self._rate = sf_info.samplerate
             self._nframes = sf_info.frames
+            self._length = self._nframes # in frames
 
 
-        # """
         # duration = nframes / rate in second
         # length in second
         # length = (self._nchannels * self._sampwidth * self.nframes) / 
@@ -122,18 +91,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         except RuntimeError as err:
             print(f"Error: unable to load in memory wave file: {filename}")
             return
-        
-        
-        self._length = self._nframes # in frames
-        
-        """
-        self._wavbuf_arr = np.frombuffer(wave_data, dtype='int16')
-        # no type change, to avoid original sound modifications in place
-        self._wavbuf_arr = self._wavbuf_arr.astype(np.float32, order='C') / 32768.0
-        """
-
-        
-   
+  
         self._wavbuf_arr = wav_data.flatten()
         return self
     
