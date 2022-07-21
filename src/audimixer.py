@@ -6,7 +6,8 @@
     Author: Coolbrother
 """
 import numpy as np
-import audisample as ausam
+# import audisample as ausam
+import audisample2 as ausam
 import audistream as austr
 import audichannel as auchan
 import audiport as aup
@@ -210,8 +211,10 @@ class AudiMixer(object):
        
     def create_sample(self, fname):
         # create new sound
-        snd = ausam.AudiSample(mode=0, filename=fname)
-        self._sound_lst.append(snd)
+        snd = ausam.AudiSample(mode=0)
+        snd = snd.load(fname)
+        if snd is not None: 
+            self._sound_lst.append(snd)
 
         return snd
     
