@@ -155,7 +155,7 @@ class AudiMixer(object):
                 # TODO: normalize it
                 max_amp = np.max(line)
                 # line += (1.0 - max_amp)
-                line += 0.2
+                line += 0.2 # FIXIT
                 # print(f"voici max_amp: {max_amp}, et max_line: {1.0 - max_amp}")
                 
                 """

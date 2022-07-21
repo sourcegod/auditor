@@ -1,9 +1,21 @@
 Changelog for Auditor Engine
 Date: Sun, 17/07/2022
-Last update: Sun, 17/07/2022
+Last update: Thu, 21/07/2022
 
--- Version 0.7
+Date: Thu, 21/07/2022
+-- Version 0.8
+-- Improving: audio normalization for the mix data, (Work in progress).
+-- Improving: avoid saturation only when summing buffers in
+(AudiMixer.get_mix_data function)
+
+-- Factorizing: adding (float32) for interne convertion, for better
+performance.
+
+-- Improving: audio Caching from (AudiPort class).
+
+
 Date: Sun, 17/07/2022
+-- Version 0.7
 -- Adding: 
 -- Splitting audisound module to:
 audibase, audistream, audisample.
