@@ -223,10 +223,12 @@ class AudiMixer(object):
     
     #-----------------------------------------
 
-    def create_stream(self, fname):
+    def create_stream(self, filename):
         # create new stream
-        snd = austr.AudiStream(filename=fname)
-        self._sound_lst.append(snd)
+        snd = austr.AudiStream()
+        snd = snd.load(filename)
+        if snd is not None: 
+            self._sound_lst.append(snd)
 
         return snd
     

@@ -17,9 +17,9 @@ class AudiSoundBase(object):
         self._id = id
         self._wavfile = None
         self._wavbuf_lst = []
-        self._nchannels =0
-        self._sampwidth =0
-        self._rate =0
+        self._nchannels =1
+        self._sampwidth =1
+        self._rate =1
         self._nframes =0
         self._maxamp = pow(2, 15) -1 # max amplitude, short 32767
         self._curpos =0
