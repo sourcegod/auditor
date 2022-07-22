@@ -8,7 +8,8 @@
 import numpy as np
 # import audisample as ausam
 import audisample2 as ausam
-import audistream as austr
+# import audistream as austr
+import audistream2 as austr
 import audichannel as auchan
 import audiport as aup
 
