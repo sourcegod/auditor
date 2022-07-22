@@ -6,7 +6,6 @@
     Author: Coolbrother
 """
 
-import wave
 import numpy as np
 from audibase import AudiSoundBase
 import soundfile as sf

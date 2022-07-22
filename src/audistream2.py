@@ -5,7 +5,6 @@
     Date: Fri, 22/07/2022
     Author: Coolbrother
 """
-import wave
 import soundfile as sf
 import numpy as np
 from audibase import AudiSoundBase
