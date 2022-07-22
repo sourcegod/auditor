@@ -150,13 +150,15 @@ class AudiMixer(object):
                 # avoid saturation, but no copy
                 max_amp = np.max(np.abs(buf_lst))
                 # print(f"voici max: {val_max}")
-                for buf in buf_lst: buf /=2
+                # TODO: find better solution for readjust level after mixing
+                coef = 1/np.sqrt(2)
+                for buf in buf_lst: buf *= coef # temporary
                 line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
                 # readjust the volume
                 # TODO: normalize it
                 max_amp = np.max(line)
                 # line += (1.0 - max_amp)
-                line += 0.2 # FIXIT
+                # line += 0.2 # FIXIT
                 # print(f"voici max_amp: {max_amp}, et max_line: {1.0 - max_amp}")
                 
                 """
