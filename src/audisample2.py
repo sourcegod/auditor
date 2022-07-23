@@ -71,7 +71,9 @@ class SoundBuffer(object):
         data = None
         if start <0: start = self._curpos
         else: start *= self._channels
-        if frames >= 0: stop = start + frames
+        if frames >= 0: 
+            frames *= self._channels
+            stop = start + frames
         elif stop >0: stop *= self._channels
         
         try:
