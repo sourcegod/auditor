@@ -21,6 +21,7 @@ class AudiSoundBase(object):
         self._sampwidth =1
         self._rate =1
         self._nframes =0
+        self._bits =1
         self._maxamp = pow(2, 15) -1 # max amplitude, short 32767
         self._curpos =0
         self._length =0
@@ -31,8 +32,8 @@ class AudiSoundBase(object):
         self._loop_end =0
         self._play_count =0
         self._buf_arr = None # for numpy array
+        self._soundbuf = None # for SoundBuffer object
  
-
     #------------------------------------------------------------------------------
     
     def load(self, filename):
@@ -213,6 +214,15 @@ class AudiSoundBase(object):
 
     #-----------------------------------------
 
+    def reverse(self):
+        """
+        reverse sound
+        from AudiSoundBase object
+        """
+        
+       
+    #-----------------------------------------
+ 
     def get_raw_list(self):
         """ return the sound raw data from soundbase object
         """

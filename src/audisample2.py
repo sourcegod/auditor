@@ -35,15 +35,26 @@ class SoundBuffer(object):
         self._data = data
         self._len =0
         if self._data.size:
-            self._len = len(self.data)
+            self._len = len(self._data)
         self._curpos =0
         self._channels =1
         self._rate = 44100
         self._bits = 16
         self._sampwidth =1
+        self.frames = self._len
 
     #------------------------------------------------------------------------------
     
+    def get_data(self):
+        """
+        returns numpy data
+        from SoundBuffer object
+        """
+
+        return self._data
+
+    #------------------------------------------------------------------------------
+
     def set_data(self, data):
         """
         init data
@@ -53,6 +64,8 @@ class SoundBuffer(object):
         # data is an nmpy array, with one dimension per channel
         self._data = data
         self._len = len(self._data)
+        self.frames = self._len
+
 
     #------------------------------------------------------------------------------
 
@@ -176,6 +189,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
                 bits = int(sf_info.subtype.split('_')[1])
             except ValueError:
                 bits =0
+            self._bits = bits
             self._sampwidth = (bits * self._nchannels) / 8
             self._rate = sf_info.samplerate
             self._nframes = sf_info.frames
@@ -193,7 +207,9 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             print(f"Error: unable to load in memory wave file: {filename}")
             return
   
-        self._wavbuf_arr = wav_data.flatten()
+        # self._wavbuf_arr = wav_data.flatten()
+        self._soundbuf = SoundBuffer(wav_data)
+        self._soundbuf.set_params(self._nchannels, self._rate, self._bits)
         return self
     
     #-----------------------------------------
@@ -258,10 +274,13 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         read nb_frames frames in file in memory 
         from audisample object
         """
+        # working in frames instead in samples
         # frames = 4 bytes, 2 signed short
         # for 2 channels, 16 bits, 44100 rate
         buf_lst = []
         buf_arr = np.array([], dtype='int16')
+        
+        """
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         # curpos in frames
         pos = int(self._curpos * self._nchannels) # in samples
@@ -280,6 +299,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
                     print("index_rror: unable to index in read_data from sample object")
                 
                 self._curpos = int(step / self._nchannels) # in frames
+
             else: # nb_frames is too large
                 if self.is_looping():
                     # debug("voici loopmode: %d, loopcount: %d" %(self._loop_mode, self._loop_count))
@@ -300,8 +320,50 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             # debug("je passe dans read_data de sample : %d bytes" % len(buf_lst)) 
             pass
 
-       
         return buf_arr
+        """
+
+        wav_data = None
+        wav_data1 = None
+        nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
+        start_pos = self.get_start_position(0) # in frames
+        end_pos = self.get_end_position(0) # in frames
+        wav_data = self._soundbuf.read(frames=nb_frames)
+        if wav_data is None:
+            print(f"Error: unable to read wav file from memory: {self._filename}")
+            return
+
+        if self._curpos + nb_frames <= end_pos: # its normal, nb_frames not too large
+            # debug("je passe ici: %s" % self._buf_arr.dtype)
+            self._curpos += nb_frames
+        else: # whether nb_frames is too large
+            nb_frames1 = len(wav_data)
+            # calculate the rest in frames
+            nb_frames2 = nb_frames - nb_frames1
+            # debug("voici len_frames1 in frames %d" % len_frames1)
+            if self.is_looping(): # is looping
+                # todo: test with loop_manager function
+                # debug("is looping")
+                self.set_position(start_pos)
+                wav_data1 = self._soundbuf.read(frames=nb_frames2)
+                if wav_data1 is None:
+                    print(f"Error: unable to read wav data in looping mode: {self._filename}")
+                    return
+
+                wav_data = np.append(wav_data, wav_data1)
+                self._curpos += nb_frames2
+            else: # not looping
+                # fill the rest of the array with zeros 
+                wav_data = np.copy(wav_data)
+                wav_data.resize(nb_samples)
+                self._curpos += nb_frames1
+
+        # convert buf_arr in one dimensional array
+        buf_arr = wav_data.flatten()
+        return buf_arr
+
+
+       
     
     #-----------------------------------------
 
@@ -401,10 +463,9 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             # debug("pos is greater than length: %d" %(self._length))
         
         self._curpos = pos # in frames
-        # debug("dans sample set_position, pos:  %.2f" % pos)
+        self._soundbuf.seek(pos)
 
     #-----------------------------------------
-
    
     def reverse(self):
         """
@@ -412,9 +473,11 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         from AudiSample object
         """
         
-        if self._wavbuf_arr.size:
+        if self._soundbuf.frames:
             # change the strides of numpy array
-            self._wavbuf_arr = self._wavbuf_arr[::-1]
+            data = self._soundbuf.get_data()
+            # reverse numpy data
+            self._soundbuf.set_data(data[::-1])
         
     #-----------------------------------------
     
