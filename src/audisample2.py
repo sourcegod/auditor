@@ -31,11 +31,16 @@ class SoundBuffer(object):
         init function
         from SoundBuffer object
         """
+        # data is a numpy array
         self._data = data
+        self._len =0
+        if self._data.size:
+            self._len = len(self.data)
         self._curpos =0
         self._channels =1
         self._rate = 44100
-        self._len =0
+        self._bits = 16
+        self._sampwidth =1
 
     #------------------------------------------------------------------------------
     
@@ -45,12 +50,13 @@ class SoundBuffer(object):
         from SoundBuffer object
         """
 
+        # data is an nmpy array, with one dimension per channel
         self._data = data
         self._len = len(self._data)
 
     #------------------------------------------------------------------------------
 
-    def set_params(self, channels, rate):
+    def set_params(self, channels=1, rate=44100, bits=16):
         """
         set params for data buffer
         from SoundBuffer object
@@ -58,29 +64,27 @@ class SoundBuffer(object):
 
         self._channels = channels
         self._rate = rate
+        self._bits = bits
+        self._sampwidth = (self._bits * self._channels) / 8
 
     #------------------------------------------------------------------------------
 
 
     def read(self, frames=-1, start=-1, stop=0):
         """
+        reading numpy array in frames
         returns nb_frames from data buffer
         from SoundBuffer object
         """
 
         data = None
         if start <0: start = self._curpos
-        else: start *= self._channels
-        if frames >= 0: 
-            frames *= self._channels
-            stop = start + frames
-        elif stop >0: stop *= self._channels
+        if frames >= 0: stop = start + frames
         
         try:
             data = self._data[start:stop]
         except IndexError:
             return 
-        
         self._curpos = stop
 
         return data
@@ -103,12 +107,13 @@ class SoundBuffer(object):
         from SoundBuffer object
         """
 
-        if not self._data: return False
-        pos *= self._channels
-        if pos >=0 and pos < len(self._data):
-            self._curpos = pos
+        # _len is data len
+        if not self._len: return -1
+        if pos <0: pos =0
+        elif pos >= self._len: pos = self.len -1
+        self._curpos = pos
         
-        return True
+        return pos
 
     #------------------------------------------------------------------------------
 
@@ -165,7 +170,13 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         if sf_info:
             self._filename = filename
             self._nchannels = sf_info.channels
-            # self._sampwidth =0
+            # subtype is a string like: "PCM_16"
+            # so we need to extract the number
+            try:
+                bits = int(sf_info.subtype.split('_')[1])
+            except ValueError:
+                bits =0
+            self._sampwidth = (bits * self._nchannels) / 8
             self._rate = sf_info.samplerate
             self._nframes = sf_info.frames
             self._length = self._nframes # in frames
