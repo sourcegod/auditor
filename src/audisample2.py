@@ -24,6 +24,95 @@ class CWave16BitsStereo(object):
                 
 #========================================
 
+class SoundBuffer(object):
+    """ wave data manager """
+    def __init__(self, data=None):
+        """
+        init function
+        from SoundBuffer object
+        """
+        self._data = data
+        self._curpos =0
+        self._channels =1
+        self._rate = 44100
+        self._len =0
+
+    #------------------------------------------------------------------------------
+    
+    def set_data(self, data):
+        """
+        init data
+        from SoundBuffer object
+        """
+
+        self._data = data
+        self._len = len(self._data)
+
+    #------------------------------------------------------------------------------
+
+    def set_params(self, channels, rate):
+        """
+        set params for data buffer
+        from SoundBuffer object
+        """
+
+        self._channels = channels
+        self._rate = rate
+
+    #------------------------------------------------------------------------------
+
+
+    def read(self, frames=-1, start=-1, stop=0):
+        """
+        returns nb_frames from data buffer
+        from SoundBuffer object
+        """
+
+        data = None
+        if start <0: start = self._curpos
+        else: start *= self._channels
+        if frames >= 0: stop = start + frames
+        elif stop >0: stop *= self._channels
+        
+        try:
+            data = self._data[start:stop]
+        except IndexError:
+            return 
+        
+        self._curpos = stop
+
+        return data
+
+    #------------------------------------------------------------------------------
+
+    def tell(self):
+        """
+        returns curpos in frames
+        from SoundBuffer object
+        """
+
+        return self._curpos
+
+    #------------------------------------------------------------------------------
+
+    def seek(self, pos):
+        """
+        search pos in frames
+        from SoundBuffer object
+        """
+
+        if not self._data: return False
+        pos *= self._channels
+        if pos >=0 and pos < len(self._data):
+            self._curpos = pos
+        
+        return True
+
+    #------------------------------------------------------------------------------
+
+
+#========================================
+
 
 class AudiSample(AudiSoundBase): # object is necessary for property function
     """ sample manager """
