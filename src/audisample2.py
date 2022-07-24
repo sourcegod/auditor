@@ -123,7 +123,7 @@ class SoundBuffer(object):
         # _len is data len
         if not self._len: return -1
         if pos <0: pos =0
-        elif pos >= self._len: pos = self.len -1
+        elif pos >= self._len: pos = self._len -1
         self._curpos = pos
         
         return pos
