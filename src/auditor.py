@@ -13,6 +13,7 @@ from os import path
 import curses
 curses.initscr()
 import audimixer as aumix
+import audiport as aup
 
 #------------------------------------------------------------------------------
 
@@ -38,8 +39,9 @@ class Auditor(object):
     from Auditor object
     """
 
-    def __init__(self):
-        self.mixer = aumix.AudiMixer()
+    def __init__(self, audio_driver=None):
+        self.audio_driver = audio_driver
+        self.mixer = aumix.AudiMixer(audio_driver)
 
     #-----------------------------------------
 
@@ -61,8 +63,11 @@ class Auditor(object):
     #-----------------------------------------
 
     def close(self):
-        """ close the mixer through the auditor object
+        """ 
+        close the mixer
+        from Auditor object
         """
+        
         if self.mixer:
             self.mixer.close()
 
@@ -70,37 +75,47 @@ class Auditor(object):
        
 #========================================
 
-aud = Auditor()
-mixer = aud.mixer
-mixer.init()
-aud.init()
+class InterfaceApp(object):
+    """ Interface app manager """
+    def __init__(self, audio_driver=None):
+        self.audio_driver = aup.PortAudioDriver()
+        self.aud = Auditor(audio_driver=self.audio_driver)
+        self.mixer = self.aud.mixer
+        self.mixer.init()
 
-fname1 = path.join(_mediadir, "drumloop.wav")
-fname2 = path.join(_mediadir, "funky.wav")
-fname3 = path.join(_mediadir, "latin.wav")
-fname4 = path.join(_mediadir, "wave.wav")
-fname5 = path.join(_mediadir, "singing.wav")
+        fname1 = path.join(_mediadir, "drumloop.wav")
+        fname2 = path.join(_mediadir, "funky.wav")
+        fname3 = path.join(_mediadir, "latin.wav")
+        fname4 = path.join(_mediadir, "wave.wav")
+        fname5 = path.join(_mediadir, "singing.wav")
 
-snd1 = mixer.create_sample(fname1)
-snd2 = mixer.create_sample(fname2)
-snd3 = mixer.create_sample(fname3)
-snd4 = mixer.create_stream(fname4)
-snd5 = mixer.create_stream(fname2)
-snd6 = mixer.create_stream(fname5)
+        self.snd1 = self.mixer.create_sample(fname1)
+        self.snd2 = self.mixer.create_sample(fname2)
+        self.snd3 = self.mixer.create_sample(fname3)
+        self.snd4 = self.mixer.create_stream(fname4)
+        self.snd5 = self.mixer.create_stream(fname2)
+        self.snd6 = self.mixer.create_stream(fname5)
 
-# snd4 = snd3
-chan1 = mixer.create_channel(1)
-# chan1.set_volume(16)
-# chan1.set_panning(127, 0)
-chan2 = mixer.create_channel(2)
-chan3 = mixer.create_channel(3)
-chan4 = mixer.create_channel(4)
-chan5 = mixer.create_channel(5)
-chan6 = mixer.create_channel(6)
+        # snd4 = snd3
+        self.chan1 = self.mixer.create_channel(1)
+        # chan1.set_volume(16)
+        # chan1.set_panning(127, 0)
+        self.chan2 = self.mixer.create_channel(2)
+        self.chan3 = self.mixer.create_channel(3)
+        self.chan4 = self.mixer.create_channel(4)
+        self.chan5 = self.mixer.create_channel(5)
+        self.chan6 = self.mixer.create_channel(6)
+
+    #-----------------------------------------
+
+#========================================
 
 class MainApp(object):
     def __init__(self):
         self.win = None
+        self.iap = InterfaceApp()
+        self.mixer = self.iap.mixer
+
 
     #-------------------------------------------
 
@@ -215,7 +230,7 @@ class MainApp(object):
 
     #-------------------------------------------
 
-    def Main(self, stdscr):
+    def main(self, stdscr):
         # stdscr is passing by curses.wrapper function
         self.win = stdscr
         msg = "Press a key..."
@@ -225,59 +240,60 @@ class MainApp(object):
             if key < 128:
                 key = chr(key)
             if key == 'Q':
-                aud.close()
+                self.iap.aud.close()
                 #aud1.close()
                 break
             elif key == 'f':
                 # chan1.setmute(1, 0)
-                chan1.play(snd1)
+                self.iap.chan1.play(self.iap.snd1)
             elif key == 'g':
-                snd2.set_loop_count(2)
-                snd2.set_loop_mode(1)
+                self.iap.snd2.set_loop_count(2)
+                self.iap.snd2.set_loop_mode(1)
                 # snd2.set_loop_points(0, 1, unit=1) # in seconds
-                chan2.play(snd2, loops=-1)
+                self.iap.chan2.play(self.iap.snd2, loops=-1)
             elif key == 'h':
-                snd3.reverse()
-                snd3.set_loop_mode(1)
-                chan3.play(snd3, loops=-1)
+                self.iap.snd3.reverse()
+                self.iap.snd3.set_loop_mode(1)
+                self.iap.chan3.play(self.iap.snd3, loops=-1)
             elif key == 'j':
                 # test different sound on same channel
-                chan2.play(snd4, 0)
+                self.iap.chan2.play(self.iap.snd4, 0)
             elif key == 'k':
                 # stream test
                 # snd4.set_loop_mode(1)
-                snd4.set_loop_points(5, 10, 1)
-                chan4.play(snd4, -1)
+                self.iap.snd4.set_loop_points(5, 10, 1)
+                self.iap.chan4.play(self.iap.snd4, -1)
             elif key == 'l':
-                snd5.set_loop_mode(1)
+                self.iap.snd5.set_loop_mode(1)
                 loops =-1 # infinitely
-                chan5.play(snd5, loops)
+                self.iap.chan5.play(self.iap.snd5, loops)
                 pass
             elif key == 'm':
-                chan6.play(snd6)
+                self.iap.chan6.play(self.iap.snd6)
             elif key == 'x':
                 # aud.mixer.play()
                 pass
             elif key == 'c':
-                aud.mixer.pause()
+                self.iap.mixer.pause()
             elif key == 'v':
                 # stop all channels
-                aud.mixer.stop()
+                self.iap.mixer.stop()
             elif key == 'b':
-                chan1.forward(1)
+                self.iap.chan1.forward(1)
             elif key == 'z':
-                chan1.rewind(1)
+                self.iap.chan1.rewind(1)
             elif key == 'G':
-                curpos = chan1.get_position(1)
-                dur = chan1.get_length(1)
+                curpos = self.iap.chan1.get_position(1)
+                dur = self.iap.chan1.get_length(1)
             elif key == 't': # test
                 self.Test()
             elif key == 'u':
-                print("Status: channels: %d, samplewidth: %d, rate: %d" %(aud.getfileinfo()))
+                # print("Status: channels: %d, samplewidth: %d, rate: %d" %(aud.getfileinfo()))
+                pass
             elif key == '<':
-                chan1.setstart()
+                self.iap.chan1.setstart()
             elif key == '>':
-                chan1.setend()
+                self.iap.chan1.setend()
             else:
                 curses.beep()
 
@@ -286,6 +302,6 @@ class MainApp(object):
 #========================================
 
 app = MainApp()
-curses.wrapper(app.Main)
+curses.wrapper(app.main)
 
 #-------------------------------------------

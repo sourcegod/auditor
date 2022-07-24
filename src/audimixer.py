@@ -11,8 +11,7 @@ import audisample2 as ausam
 # import audistream as austr
 import audistream2 as austr
 import audichannel as auchan
-import audiport as aup
-
+# import audiport as aup
 DEBUG =1 
 def debug(msg="", title="", bell=True):
     if DEBUG:
@@ -24,15 +23,15 @@ def debug(msg="", title="", bell=True):
 
 
 class AudiMixer(object):
-    """ Mixer object to manage channel 
-    """
-    def __init__(self):
+    """ Mixer object to manage channels """
+    def __init__(self, audio_driver=None):
+        # self._audio_driver = AlsaAudioDriver()
+        # self.audio_driver = aup.PortAudioDriver()
+        self.audio_driver = audio_driver
         self._playing =0
         self._sound_lst = [] # list for sound object
         self._chan_lst = [] # list for channel object
         self._thr_audio = None
-        # self._audio_driver = AlsaAudioDriver()
-        self.audio_driver = aup.PortAudioDriver()
         # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
         self._nchannels =1
@@ -210,10 +209,12 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-
-       
     def create_sample(self, fname):
-        # create new sound
+        """
+        create new sound
+        from AudiMixer object
+        """
+
         snd = ausam.AudiSample(mode=0)
         snd = snd.load(fname)
         if snd is not None: 
@@ -237,8 +238,9 @@ class AudiMixer(object):
     def create_channel(self, id):
         # create channel object
         chan = auchan.AudiChannel(id)
-        chan.set_mix_callback(self.audio_driver)
-        self._chan_lst.append(chan)
+        if self.audio_driver:
+            chan.set_mix_callback(self.audio_driver)
+            self._chan_lst.append(chan)
         
         return chan
 
