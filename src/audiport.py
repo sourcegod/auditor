@@ -237,11 +237,17 @@ class BaseDriver(object):
     #-----------------------------------------
 
 
-    def set_output_device_index(self, rate, device, channels, format=None):
-        """ test if this input device is available
+    def set_output_device_index(self, device):
+        """ 
+        test whether this input device is available
+        from BaseDriver object 
         """
 
+        rate=44100
+        channels =2
+        format = None
         res =0
+        """
         try:
             res = self._out.is_format_supported(rate, 
                     output_device=device, output_channels=channels, 
@@ -250,6 +256,9 @@ class BaseDriver(object):
             print(e)
         if res:
             self._output_device_index = device
+        """
+
+        self._output_device_index = device
         
         return res
 

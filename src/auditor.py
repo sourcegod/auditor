@@ -77,8 +77,10 @@ class Auditor(object):
 
 class InterfaceApp(object):
     """ Interface app manager """
-    def __init__(self, audio_driver=None):
-        self.audio_driver = aup.PortAudioDriver()
+    def __init__(self, audio_driver=None, output_index=None):
+        self.audio_driver = audio_driver # aup.PortAudioDriver()
+        if self.audio_driver:
+            self.audio_driver.set_output_device_index(output_index)
         self.aud = Auditor(audio_driver=self.audio_driver)
         self.mixer = self.aud.mixer
         self.mixer.init()
@@ -107,13 +109,22 @@ class InterfaceApp(object):
         self.chan6 = self.mixer.create_channel(6)
 
     #-----------------------------------------
+    
+    def init_app(self, audio_driver=None, output_index=None):
+        """
+        init app
+        from InterfaceApp object
+        """
+
+    #-----------------------------------------
 
 #========================================
 
 class MainApp(object):
-    def __init__(self):
+    def __init__(self, audio_driver=None, output_index=None):
         self.win = None
-        self.iap = InterfaceApp()
+        self.iap = InterfaceApp(audio_driver, output_index)
+        # self.iap.init_app(audio_driver, output_index)
         self.mixer = self.iap.mixer
 
 
@@ -301,7 +312,10 @@ class MainApp(object):
 
 #========================================
 
-app = MainApp()
-curses.wrapper(app.main)
+if __name__ == "__main__":
+    audio_driver = aup.PortAudioDriver()
+    output_index = 6 # None for default output port
+    app = MainApp(audio_driver=audio_driver, output_index=output_index)
+    curses.wrapper(app.main)
 
 #-------------------------------------------
