@@ -328,14 +328,16 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         start_pos = self.get_start_position(0) # in frames
         end_pos = self.get_end_position(0) # in frames
+        curpos = self.get_position(0)
         wav_data = self._soundbuf.read(frames=nb_frames)
         if wav_data is None:
             print(f"Error: unable to read wav file from memory: {self._filename}")
             return
 
-        if self._curpos + nb_frames <= end_pos: # its normal, nb_frames not too large
+        if curpos + nb_frames <= end_pos: # its normal, nb_frames not too large
             # debug("je passe ici: %s" % self._buf_arr.dtype)
-            self._curpos += nb_frames
+            curpos += nb_frames
+            self.set_position(curpos)
         else: # whether nb_frames is too large
             nb_frames1 = len(wav_data)
             # calculate the rest in frames
@@ -351,19 +353,20 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
                     return
 
                 wav_data = np.append(wav_data, wav_data1)
-                self._curpos += nb_frames2
+                curpos = self.get_position(0)
+                curpos += nb_frames2
+                self.set_position(curpos)
             else: # not looping
                 # fill the rest of the array with zeros 
                 wav_data = np.copy(wav_data)
                 wav_data.resize(nb_samples)
-                self._curpos += nb_frames1
+                curpos = self.get_position(0)
+                curpos += nb_frames1
+                self.set_position(curpos)
 
         # convert buf_arr in one dimensional array
         buf_arr = wav_data.flatten()
         return buf_arr
-
-
-       
     
     #-----------------------------------------
 
@@ -434,8 +437,9 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # not necessary
         # no convert float to int to be precise in position
         # val = self.frames_to_unit(self._curpos, unit)
-        val = self._curpos
-       
+        # val = self._curpos
+        val = self._soundbuf.tell()
+        
         # debug("dans sample get_pos, val: %.2f " %(val))
         return val
 
