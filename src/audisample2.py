@@ -269,17 +269,12 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
 
     #-----------------------------------------
 
-    def read_data(self, nb_frames):
-        """ 
-        read nb_frames frames in file in memory 
-        from audisample object
+    def read_data0(self, nb_frames):
         """
-        # working in frames instead in samples
-        # frames = 4 bytes, 2 signed short
-        # for 2 channels, 16 bits, 44100 rate
-        buf_lst = []
-        buf_arr = np.array([], dtype='int16')
-        
+        Temporary function, just to backup old version based on samples instead frames
+        from AudiSample object
+        """
+
         """
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         # curpos in frames
@@ -323,6 +318,22 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         return buf_arr
         """
 
+    #-----------------------------------------
+
+    def read_data(self, nb_frames):
+        """ 
+        read nb_frames frames in file in memory 
+        from audisample object
+        """
+
+        # working in frames instead in samples
+        # Note: this version is less performent than old version based on samples
+        # cause numpy array is flattened one time on old version
+        # frames = 4 bytes, 2 signed short
+        # for 2 channels, 16 bits, 44100 rate
+        buf_lst = []
+        buf_arr = np.array([], dtype='int16')
+        
         wav_data = None
         wav_data1 = None
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
