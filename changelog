@@ -1,6 +1,15 @@
 Changelog for Auditor Engine
 Date: Sun, 17/07/2022
-Last update: Thu, 21/07/2022
+Last update: Mon, 25/07/2022
+
+Date: Mon, 25/07/2022
+-- Version 0.9
+-- Adding support for PySoundFile for AudiSample and AudiStream modules.
+-- Remove (wave module) in (AudiSample and AudiStream modules).
+-- Testing SoundBuffer object in (AudiSample.read_data) for AudiSample module with no gain of performance
+compared with the implementation based on Samples.
+-- Adding (InterfaceAppclass in auditor.py file).
+
 
 Date: Thu, 21/07/2022
 -- Version 0.8
