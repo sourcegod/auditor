@@ -259,6 +259,23 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def play_channel(self, chan_num, snd_num=0):
+        """
+        play channel with associated sound
+        from AudiMixer object
+        """
+        
+        try:
+            chan = self._chan_lst[chan_num]
+            snd = self._sound_lst[snd_num]
+        except IndexError:
+            return
+        chan.play(snd)
+
+        return True
+
+    #-----------------------------------------
+
 
     def pause(self):
         self._playing =0

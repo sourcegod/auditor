@@ -271,6 +271,7 @@ class PortAudioDriver(BaseDriver):
     """ portaudio driver manager """
     def __init__(self):
         super().__init__()
+        self.parent = None
         self._audio_thread = None # object threading
         self._playing =0
         self._audio_data = None

@@ -9,11 +9,16 @@
 
 import warnings
 import os, sys
+import time
 from os import path
 import curses
 curses.initscr()
 import audimixer as aumix
 import audiport as aup
+import midutils as mid
+import threading
+import multiprocessing
+
 
 #------------------------------------------------------------------------------
 
@@ -32,6 +37,74 @@ def debug(msg="", title="", bell=True):
             curses.beep()
     
 #------------------------------------------------------------------------------
+
+class MyThread(threading.Thread):
+    def __init__(self, ev_callback=None, sleep_time=0.1):
+        """ call base class constructor """
+        super().__init__()
+        self._stop_event = threading.Event()
+        self._ev_callback = ev_callback
+        self._sleep_time = sleep_time
+
+    #-------------------------------------------
+
+    def run(self):
+        """main control loop"""
+        while not self._stop_event.isSet():
+            #do work
+            self._ev_callback(1, 4)
+            # print("hi")
+            self._stop_event.wait(self._sleep_time)
+
+    #-------------------------------------------
+
+    def stop(self, timeout=None):
+        """set stop event and join within a given time period"""
+        self._stop_event.set()
+        super().join(timeout)
+        print("End of Threading...")
+
+    #-------------------------------------------
+           
+#========================================
+
+"""
+    t = MyThread()
+    t.start()
+    time.sleep(5)
+    t.join(1) #wait 1s max
+"""
+
+class MyProcess(multiprocessing.Process):
+    def __init__(self, ev_callback=None, sleep_time=0.1):
+        """ call base object constructor """
+        super().__init__()
+        self._exit = multiprocessing.Event()
+        self._ev_callback = ev_callback
+        self._sleep_time = sleep_time
+
+    #-------------------------------------------
+
+    def run(self):
+        """main control loop"""
+        while not self._exit.is_set():
+        # if 1:
+            self._ev_callback()
+            time.sleep(0.1)
+        print("Loop Exiting")
+
+    #-------------------------------------------
+
+    def stop(self, timeout=None):
+        """set stop event and join within a given time period"""
+        self._exit.set()
+        super().join(timeout)
+        print("End of Threading...")
+
+    #-------------------------------------------
+           
+#========================================
+
 
 class Auditor(object):
     """ 
@@ -81,9 +154,14 @@ class InterfaceApp(object):
         self.audio_driver = audio_driver # aup.PortAudioDriver()
         if self.audio_driver:
             self.audio_driver.set_output_device_index(output_index)
+            self.audio_driver.parent = self
         self.aud = Auditor(audio_driver=self.audio_driver)
         self.mixer = self.aud.mixer
         self.mixer.init()
+        self._thr = None
+        self._midi_in = None
+        self._midi_out = None
+
 
         fname1 = path.join(_mediadir, "drumloop.wav")
         fname2 = path.join(_mediadir, "funky.wav")
@@ -116,7 +194,144 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
+        self.start_midi_thread()
+
     #-----------------------------------------
+
+    def close(self):
+        """
+        close the app
+        from InterfaceApp object
+        """
+
+        self.stop_midi_thread()
+
+    #-----------------------------------------
+     
+    def play_notes(self, note_num=36):
+        """
+        send note number to the mixer
+        from InterfaceApp
+        object
+        """
+        
+        if note_num >=36:
+            note_num -= 36
+            # print(f"note_num: {note_num}")
+            self.mixer.play_channel(note_num, note_num)
+
+    #-----------------------------------------
+
+    def _midi_handler(self, msg, inport=0, outport=0, printing=False):
+        """ 
+        Handling midi messages 
+        from InterfaceApp
+        """
+        
+        # midi_in = mid.open_input(1)
+        # midi_out = mid.open_output(outport)
+
+        # msg = self._midi_in.poll()
+        # better for performance to blocking port
+        # msg = self._midi_in.receive(block=True)
+        if msg:
+            # print("\a") # beep
+            m_type = msg.type
+            if m_type in ['note_on', 'note_off']:
+                m_note = msg.note
+                m_vel = msg.velocity
+                # Note off
+                if m_type == "note_on" and m_vel == 0:
+                    if printing:
+                        print("Midi_in Message: ")
+                        print(f"Note_off, Midi Number: {m_note}, Name: {mid.mid2note(m_note)}")
+                        print(f"Details: {msg}")
+                # Note on
+                elif m_type == "note_on" and m_vel >0:
+                    self.play_notes(m_note)
+                    if printing:
+                        print(f"Note_on, Midi Number: {m_note}, Name: {mid.mid2note(m_note)}")
+                        freq = mid.mid2freq(m_note)
+                        print(f"Freq: {freq:.2f}")
+                        print(f"Details: {msg}")
+            else:# others messages
+                if printing:
+                    print("Unknown message")
+                    print(f"Details: {msg}")
+            if  self._midi_out:
+                self._midi_out.send(msg)
+                if printing: 
+                    print("Midi_out message.")
+            # beep
+            if printing: 
+                print("\a")
+        # time.sleep(0.1)
+        # for testing performance
+        self._count +=1
+        # print(f"Callback Count: {self._count}")
+
+    #-------------------------------------------
+
+    def start_midi_thread(self):
+        """
+        Attach callback function to the Midi port Callback
+        from InterfaceApp
+        """
+
+        self._count =0
+        self._midi_in = mid.open_input(1)
+        self._midi_in.callback = self._midi_handler
+        self._midi_out = mid.open_output(0)
+        self._midi_running = True
+
+        """
+        # Note: no need threading, just attach callback function to the input port
+        if self._thr is None:
+            self._thr = MyThread(self.play_midi)
+            # self._thr = threading.Thread(target=self.play_midi,  args=(self._kill_ev, 1, 4))
+            # self._thr = MyProcess(self.play_midi, )
+            self._thr.start()
+        """
+        
+    #-------------------------------------------
+
+    def stop_midi_thread(self):
+        """
+        Stopping Midi callback
+        from InterfaceApp
+        """
+
+        if self._midi_running:
+            if self._midi_in:
+                self._midi_in.callback = None
+                self._midi_in.close()
+            if self._midi_out:
+                self._midi_out.close()
+            self._midi_running = False
+
+        """
+        if self._thr:
+            if self._midi_in:
+                self._midi_in.close()
+            if self._midi_out:
+                self._midi_out.close()
+            self._thr.stop()
+        self._thr = None
+        """
+    
+    #-------------------------------------------
+     
+    def test(self):
+        """
+        Testing the app
+        from InterfaceApp object
+        """
+
+        print("Test from InterfaceApp object")
+        self.start_midi_thread()
+
+
+    #-------------------------------------------
 
 #========================================
 
@@ -244,6 +459,7 @@ class MainApp(object):
     def main(self, stdscr):
         # stdscr is passing by curses.wrapper function
         self.win = stdscr
+        self.iap.init_app()
         msg = "Press a key..."
         self.Display(msg)
         while 1:
@@ -252,6 +468,7 @@ class MainApp(object):
                 key = chr(key)
             if key == 'Q':
                 self.iap.aud.close()
+                self.iap.close()
                 #aud1.close()
                 break
             elif key == 'f':
@@ -296,8 +513,12 @@ class MainApp(object):
             elif key == 'G':
                 curpos = self.iap.chan1.get_position(1)
                 dur = self.iap.chan1.get_length(1)
-            elif key == 't': # test
-                self.Test()
+            elif key == 'S': 
+                # stop midi thread
+                self.iap.stop_midi_thread()
+            elif key == 'T': # test
+                # self.Test()
+                self.iap.test()
             elif key == 'u':
                 # print("Status: channels: %d, samplewidth: %d, rate: %d" %(aud.getfileinfo()))
                 pass
