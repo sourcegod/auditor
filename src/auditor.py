@@ -38,6 +38,23 @@ def debug(msg="", title="", bell=True):
     
 #------------------------------------------------------------------------------
 
+class InstruObj(object):
+    """ Instrument parameters container """
+    def __init__(self):
+        self.id =0
+        self.name = "" # instrument's name
+        self.key =0
+        self.snd = None
+        self.chan = None
+        # chan_mode 0: stopping when note off, 1: continue playing, 2: overlapping sound
+        self.chan_mode =0 
+        self.loop_mode = False
+        self.loop_count =0
+
+    #------------------------------------------------------------------------------
+
+#========================================
+
 class MyThread(threading.Thread):
     def __init__(self, ev_callback=None, sleep_time=0.1):
         """ call base class constructor """
@@ -161,7 +178,7 @@ class InterfaceApp(object):
         self._thr = None
         self._midi_in = None
         self._midi_out = None
-
+        self._instru_lst = []
 
         fname1 = path.join(_mediadir, "drumloop.wav")
         fname2 = path.join(_mediadir, "funky.wav")
@@ -194,6 +211,7 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
+        self.gen_instruments()
         self.start_midi_thread()
 
     #-----------------------------------------
@@ -208,17 +226,60 @@ class InterfaceApp(object):
 
     #-----------------------------------------
      
-    def play_notes(self, note_num=36):
+    def gen_instruments(self, count=16):
+        """
+        generate instruments list
+        from InterfaceApp object
+        """
+
+        id =1
+        self._instru_lst = []
+        key0 = 36
+        chan_lst = self.mixer.get_channels()
+        snd_lst = self.mixer.get_sounds()
+
+        for (i, item) in enumerate(chan_lst):
+            instru = InstruObj()
+            instru.id = i+1
+            instru.key = key0 +i
+            if i < len(snd_lst): instru.snd = snd_lst[i]
+            instru.chan = chan_lst[i]
+            
+            self._instru_lst.append(instru)
+
+        
+        for instru in self._instru_lst:
+            if instru.key in (37,):
+                instru.chan_mode =1 # mode continue
+            if instru.key == 38:
+                # instru.snd.set_loop_count(2)
+                instru.snd.set_loop_mode(1)
+                instru.chan_mode =1
+                instru.loop_mode =1
+                instru.loop_count =-1
+
+    #-----------------------------------------
+    
+    def play_notes(self, m_type, m_note, mvel):
         """
         send note number to the mixer
         from InterfaceApp
         object
         """
         
-        if note_num >=36:
-            note_num -= 36
-            # print(f"note_num: {note_num}")
-            self.mixer.play_channel(note_num, note_num)
+        # print(f"note_num: {note_num}")
+        if m_note >= 36: m_note -= 36
+        loop_count =0
+        try:
+            instru = self._instru_lst[m_note]
+        except IndexError:
+            return
+        if m_type == "note_on":
+            print("\a")
+            if instru.loop_mode: loop_count = instru.loop_count
+            instru.chan.play(instru.snd, loop_count)
+        elif m_type == "note_off":
+            if instru.chan_mode == 0: instru.chan.stop()
 
     #-----------------------------------------
 
@@ -242,13 +303,15 @@ class InterfaceApp(object):
                 m_vel = msg.velocity
                 # Note off
                 if m_type == "note_on" and m_vel == 0:
+                    m_type = "note_off"
+                    self.play_notes(m_type, m_note, m_vel)
                     if printing:
                         print("Midi_in Message: ")
                         print(f"Note_off, Midi Number: {m_note}, Name: {mid.mid2note(m_note)}")
                         print(f"Details: {msg}")
                 # Note on
                 elif m_type == "note_on" and m_vel >0:
-                    self.play_notes(m_note)
+                    self.play_notes(m_type, m_note, m_vel)
                     if printing:
                         print(f"Note_on, Midi Number: {m_note}, Name: {mid.mid2note(m_note)}")
                         freq = mid.mid2freq(m_note)
@@ -475,7 +538,7 @@ class MainApp(object):
                 # chan1.setmute(1, 0)
                 self.iap.chan1.play(self.iap.snd1)
             elif key == 'g':
-                self.iap.snd2.set_loop_count(2)
+                # self.iap.snd2.set_loop_count(2)
                 self.iap.snd2.set_loop_mode(1)
                 # snd2.set_loop_points(0, 1, unit=1) # in seconds
                 self.iap.chan2.play(self.iap.snd2, loops=-1)

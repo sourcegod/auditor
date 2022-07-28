@@ -113,7 +113,11 @@ class AudiChannel(DspEffect):
     #-----------------------------------------
 
     def play(self, snd, loops=0):
-        # play for channel
+        """
+        play for channel
+        from AudiChannel object
+        """
+
         # loops -1: infinitly
         # 0: no looping mode
         # curses.beep()
@@ -137,17 +141,16 @@ class AudiChannel(DspEffect):
     #-----------------------------------------
 
     def stop(self):
-        # stop channel
+        """
+        stop channel
+        from AudiChannel object
+        """
+
         if self._sound:
-            # self._sound._active =0
             self._active =0
             self._sound.set_position(0)
             self._playing =0
             self._paused =0
-
-        #if self._mix_callback:
-        #     self._mix_callback.stop_thread()
-
 
     #-----------------------------------------
 

@@ -276,6 +276,21 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def stop_channel(self, chan_num):
+        """
+        channel with associated sound
+        from AudiMixer object
+        """
+        
+        try:
+            self._chan_lst[chan_num].stop()
+        except IndexError:
+            return
+
+        return True
+
+    #-----------------------------------------
+
 
     def pause(self):
         self._playing =0
@@ -299,6 +314,26 @@ class AudiMixer(object):
         for snd in self._sound_lst:
             snd.close()
 
+
+    #-----------------------------------------
+
+    def get_sounds(self):
+        """
+        returns sound list 
+        from AudiMixer object
+        """
+
+        return self._sound_lst
+
+    #-----------------------------------------
+
+    def  get_channels(self):
+        """
+        returns channel list 
+        from AudiMixer object
+        """
+
+        return self._chan_lst
 
     #-----------------------------------------
 
