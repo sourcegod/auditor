@@ -1,0 +1,9 @@
+Todo List on Auditor
+Date: Sat, 30/07/2022
+
+-- Improve performance on play and stop channel.
+-- Passing AudiSample.read_data in samples for better performance.
+-- Add support to load instrument file.
+-- Add support to pyjack module.
+
+
