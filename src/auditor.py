@@ -44,6 +44,8 @@ class InstruObj(object):
         self.id =0
         self.name = "" # instrument's name
         self.key =0
+        self.m_type = "" # midi message type
+        self.m_vel =0 # velocity
         self.snd = None
         self.chan = None
         # chan_mode 0: stopping when note off, 1: continue playing, 2: overlapping sound
@@ -258,9 +260,13 @@ class InterfaceApp(object):
                 instru.loop_mode =1
                 instru.loop_count =-1
 
+            if instru.key == 40: # no velocity
+                instru.m_vel =-1
+                instru.chan.set_vel(-1)
+
     #-----------------------------------------
     
-    def play_notes(self, m_type, m_note, mvel):
+    def play_notes(self, m_type, m_note, m_vel):
         """
         send note number to the mixer
         from InterfaceApp
@@ -270,13 +276,18 @@ class InterfaceApp(object):
         # print(f"note_num: {note_num}")
         if m_note >= 36: m_note -= 36
         loop_count =0
-        try:
-            instru = self._instru_lst[m_note]
-        except IndexError:
-            return
-        if m_type == "note_on":
+        if m_note >= len(self._instru_lst):
             print("\a")
+            return
+        
+        instru = self._instru_lst[m_note]
+        if m_type == "note_on":
+            # print("\a")
             if instru.loop_mode: loop_count = instru.loop_count
+            instru.m_type = m_type
+            if instru.chan.is_vel():
+                instru.m_vel = m_vel
+                instru.chan.set_vel(m_vel)
             instru.chan.play(instru.snd, loop_count)
         elif m_type == "note_off":
             if instru.chan_mode == 0: instru.chan.stop()

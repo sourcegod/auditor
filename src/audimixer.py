@@ -122,7 +122,9 @@ class AudiMixer(object):
                     """
                     
                     # buf_lst.append(buf1)
-                    len1 = buf1.size
+                    # len1 = buf1.size
+                    if chan.is_vel():
+                        chan.process_vel(buf1)
                     
                     # FIX: we cannot modify array that is in readonly, so we copy
                     # to avoid saturation when summing, we divide the amplitude
@@ -290,7 +292,6 @@ class AudiMixer(object):
         return True
 
     #-----------------------------------------
-
 
     def pause(self):
         self._playing =0

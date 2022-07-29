@@ -16,21 +16,29 @@ class DspEffect(object):
     #-----------------------------------------
 
     def dsp_volume(self, wavebuf, leftvol, rightvol):
-        # set dsp volume
-        lst = []
-        # return wavebuf 
-        try:
-            for i in range(0, len(wavebuf), 2):
-                lst.append(wavebuf[i]*leftvol)
-                lst.append(wavebuf[i+1]*rightvol)
-        except IndexError:
-            # lst = []
-            print("voici: ",len(wavebuf))
-            curses.beep()
+        """ 
+        set dsp volume
+        # change in place wavebuf
+        from DspEffect object
+        """
 
-        return lst
+        for i in range(0, len(wavebuf), 2):
+            wavebuf[i] *= leftvol
+            wavebuf[i+1] * rightvol
 
     #-----------------------------------------
+
+    def dsp_vel(self, wavebuf, val):
+        """ 
+        set dsp velocity
+        change in place numpy wavebuf 
+        from DspEffect object
+        """
+
+        wavebuf *= val
+
+    #-----------------------------------------
+
 
     def dsp_pitch(self, wavebuf, val=32):
         # set pitch shifting
@@ -82,6 +90,7 @@ class AudiChannel(DspEffect):
         self._active =0
         self._mix_callback = None
         self._maxvol =128.0
+        self._maxvel = 128.0 # velocity
         self._volume =1 # self._maxvol / self._maxvol
         self._maxpan =127 # max panoramique volume
         self._leftpan =1 # left channel volume of sample
@@ -89,6 +98,9 @@ class AudiChannel(DspEffect):
         self._muted =0
         self._leftmute =1 # for left channel mute
         self._rightmute =1 # for right channel mute
+        self._vel =1
+
+
 
     #-----------------------------------------
 
@@ -256,11 +268,12 @@ class AudiChannel(DspEffect):
     #-----------------------------------------
 
     def limit_value(self, lim_left, lim_right, val):
-        # return value beetwen lim_left, lim_right
-        if val < lim_left:
-            val = lim_left
-        elif val > lim_right:
-            val = lim_right
+        """ 
+        returns value beetwen lim_left, lim_right
+        from AudiChannel object
+        """
+        if val < lim_left: val = lim_left
+        elif val > lim_right: val = lim_right
 
         return val
 
@@ -291,16 +304,33 @@ class AudiChannel(DspEffect):
     #-----------------------------------------
 
     def set_volume(self, vol):
-        # set the channel volume
-        self._volume = self.limitvalue(0, self._maxvol, vol)
-        self._volume /= self._maxvol
+        """
+        set the channel volume
+        from AudiChannel object
+        """
+
+        self._volume = self.limitvalue(-1, self._maxvol, vol)
+        if self._volume >=0:
+            self._volume /= self._maxvol
         # self._dsp_lst.append('dsp_001') # volume effect id
 
     #-----------------------------------------
 
     def process_volume(self, wavebuf):
         # process channel volume
-        return self.dsp_volume(wavebuf, self._volume, self._volume)
+        self.dsp_volume(wavebuf, self._volume, self._volume)
+
+    #-----------------------------------------
+
+    def is_volume(self):
+        """
+        returns whether channel volume is activate
+        from AudiChannel object
+        """
+
+        if self._volume <0: return False
+       
+        return True
 
     #-----------------------------------------
 
@@ -324,6 +354,51 @@ class AudiChannel(DspEffect):
         return self.dsp_volume(wavebuf, self._leftpan, self._rightpan)
 
     #-----------------------------------------
+
+    def get_vel(self):
+        """
+        returns channel velocity
+        from AudiChannel object
+        """
+       
+        return self._vel
+
+    #-----------------------------------------
+
+    def set_vel(self, vel):
+        """
+        set the channel velocity
+        from AudiChannel object 
+        """
+        
+        self._vel = self.limit_value(-1, self._maxvel, vel)
+        if self._vel >=0:
+            self._vel /= self._maxvel
+
+    #-----------------------------------------
+
+    def process_vel(self, wavebuf):
+        """
+        process channel velocity
+        from AudiChannel object
+        """
+
+        self.dsp_vel(wavebuf, self._vel)
+
+    #-----------------------------------------
+
+    def is_vel(self):
+        """
+        returns whether velocity is activate
+        from AudiChannel object
+        """
+       
+        if self._vel <0: return False
+
+        return True
+
+    #-----------------------------------------
+
 
     def get_mute(self):
         return (self._leftmute, self._rightmute)
