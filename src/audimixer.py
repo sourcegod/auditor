@@ -34,17 +34,16 @@ class AudiMixer(object):
         self._thr_audio = None
         # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
-        self._nchannels =2 # TODO: why nchannels not been initialized by init function?
+        self._nchannels =1 # TODO: why nchannels not been initialized by init function?
         self._rate = 44100
         self._format =0
         self._in_type = np.int16
         self._out_type = np.int16
         self._mixing =0
         self._max_int16 = 32767
-        self._len_buf = self._buf_size * self._nchannels
+        self._len_buf =1
         # to maintaining the audio callback alive
-        self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
-
+        self._ret_buf = None
 
     #-----------------------------------------
 
@@ -53,6 +52,9 @@ class AudiMixer(object):
         self._rate = rate
         self._format = format
         debug("in the mixer init: nchannels: ", self._nchannels)
+        self._len_buf = self._buf_size * self._nchannels
+        self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
+
         if self.audio_driver:
             self.audio_driver.init_audio(nchannels, rate, format)
             self.audio_driver.set_mixer(self)

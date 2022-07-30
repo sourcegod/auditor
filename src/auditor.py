@@ -130,10 +130,10 @@ class Auditor(object):
     main object auditor 
     from Auditor object
     """
-
     def __init__(self, audio_driver=None):
         self.audio_driver = audio_driver
         self.mixer = aumix.AudiMixer(audio_driver)
+        self.mixer.init()
 
     #-----------------------------------------
 
@@ -176,7 +176,7 @@ class InterfaceApp(object):
             self.audio_driver.parent = self
         self.aud = Auditor(audio_driver=self.audio_driver)
         self.mixer = self.aud.mixer
-        self.mixer.init()
+        # self.mixer.init()
         self._thr = None
         self._midi_in = None
         self._midi_out = None

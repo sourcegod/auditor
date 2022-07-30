@@ -34,13 +34,13 @@ class BaseDriver(object):
         self._nchannels =0
         self._sampwidth =0
         self._rate =0
+        self._format = None
         self._nframes =0
         self._chan_lst = [] # list for channel object
         self._stream = None
         self._driver_index = None # equiv to host api
         self._input_device_index = None
         self._output_device_index = None
-        self._running = False
 
 
     #------------------------------------------------------------------------------
@@ -281,28 +281,30 @@ class PortAudioDriver(BaseDriver):
         self._cache_lst = [] # for caching
         self._mixing =0
         self._mixer = None
+        self._out = pyaudio.PyAudio()
+        self._running = False
 
     #------------------------------------------------------------------------------
 
    
-    def init_audio(self, nchannels=2, rate=44100, format=8):
+    def init_audio(self, nchannels=2, rate=44100, format=16):
         """ Open the portaudio device in playback mode through the portaudio driver object 
         """
         
-        self._out = pyaudio.PyAudio()
-
-
+        if self._out is None:
+            self._out = pyaudio.PyAudio()
         # self._out.get_format_from_width(self.wf.getsampwidth())
-        format = pyaudio.paInt16
-        # self.format = format
-        
+        self._format = pyaudio.paInt16
+        self._nchannels = nchannels
+        self._rate = rate
+
         # self._audio_thread = CAudioThread(self._write_audio_data)
        
         # with callback
         # """
-        self._stream = self._out.open(format=format,
-                    channels=nchannels,
-                    rate=rate,
+        self._stream = self._out.open(format=self._format,
+                    channels=self._nchannels,
+                    rate=self._rate,
                     input=False,
                     output=True,
                     input_device_index = self._input_device_index,
