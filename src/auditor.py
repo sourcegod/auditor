@@ -214,7 +214,8 @@ class InterfaceApp(object):
         """
 
         self.gen_instruments()
-        self.start_midi_thread()
+        self.audio_driver.start_engine()
+        # self.start_midi_thread()
 
     #-----------------------------------------
 
@@ -394,6 +395,29 @@ class InterfaceApp(object):
         """
     
     #-------------------------------------------
+
+    def start_audio_engine(self):
+        """
+        start the audio driver engine
+        from InterfaceApp
+        """
+        
+        if self.audio_driver:
+            self.audio_driver.start_engine()
+
+    #-------------------------------------------
+
+    def stop_audio_engine(self):
+        """
+        stop the audio driver engine
+        from InterfaceApp
+        """
+        
+        if self.audio_driver:
+            self.audio_driver.stop_engine()
+
+    #-------------------------------------------
+
      
     def test(self):
         """
@@ -580,6 +604,9 @@ class MainApp(object):
             elif key == 'v':
                 # stop all channels
                 self.iap.mixer.stop()
+            elif key == 'V':
+                # stop the audio engine
+                self.iap.stop_audio_engine()
             elif key == 'b':
                 self.iap.chan1.forward(1)
             elif key == 'z':

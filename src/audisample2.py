@@ -370,7 +370,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             else: # not looping
                 # fill the rest of the array with zeros 
                 wav_data = np.copy(wav_data)
-                wav_data.resize(nb_samples)
+                # wav_data.resize(nb_samples)
                 curpos = self.get_position(0)
                 curpos += nb_frames1
                 self.set_position(curpos)

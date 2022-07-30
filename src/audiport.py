@@ -369,7 +369,11 @@ class PortAudioDriver(BaseDriver):
             self._cache_lst = []
         elif self._mixer:
             data =  self._mixer.get_mix_data()
-        # debug(f"Data Len") 
+        if data is None:
+            debug(data)
+        else:
+            # debug(f"Data Len: {len(data)}") 
+            pass
         
         return (data, flag)
 
@@ -450,7 +454,8 @@ class PortAudioDriver(BaseDriver):
 
         if not self._stream.is_active() or not self._running:
             self._stream.stop_stream()
-            if self.set_cache():
+            # if self.set_cache():
+            if 1:
                 # debug("After Caching...")
                 # debug("voici len buf_lst: %d" % len(self._cache_lst))
                 self._stream.start_stream()

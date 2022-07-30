@@ -78,6 +78,7 @@ class AudiMixer(object):
         chan_num =0
         chan_count =0
         self._mixing =0
+        len1 = self._buf_size * self._nchannels
 
         for (i, chan) in enumerate(self._chan_lst):
             if chan.is_active():
@@ -102,10 +103,13 @@ class AudiMixer(object):
                     snd.set_play_count(0)
                     continue
                 else:
+                    if len(buf1) < len1:
+                        buf1.resize(len1)
+                        chan.set_active(0)
+                        # debug("Buffer resized.")
+
+                    
                     """
-                    len1 = self._buf_size * 2
-                    size = len(buf1)
-                    if size < len1:
                         nb_zeros = len1 - size
                         debug("Data too small, adding %d shorts filling with zeros" % nb_zeros)
                         # buf1 = chan.add_zeros(buf1, nb_zeros)
@@ -140,12 +144,12 @@ class AudiMixer(object):
         if buf_lst.size:
             if chan_count == 0: # no more audio data
                 self._mixing =0
-                return
+                return 
             elif chan_count == 1: # no copy data
                 out_buf = buf_lst[chan_num] # (buf_lst[chan_num] * 32767).astype('int16')
-                # print("out_buf: ", out_buf[512:522])
                 # no copy, but very bad sound
                 # out_buf = buf_lst[chan_num].view(self._out_type)
+                # debug("Yes mannn")
             elif chan_count >= 2:
                 # passing the type of array result to avoid copy with astype letter
                
