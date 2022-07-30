@@ -472,11 +472,11 @@ class PortAudioDriver(BaseDriver):
         from PortAudioDriver object
         """
 
-        if self._running:
+        if self._running and self._stream:
             self._stream.stop_stream()
             print("\a")
             debug("Stopping the stream callback...")
-            self._running = True
+            self._running = False
    
     #-----------------------------------------
    

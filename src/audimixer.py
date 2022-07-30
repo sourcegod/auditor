@@ -318,13 +318,14 @@ class AudiMixer(object):
     #-----------------------------------------
     
     def close(self):
-        if self.audio_driver:
-            self.audio_driver.stop_engine()
-            self.audio_driver.close()
+        print("Closing the mixer...")
         for chan in self._chan_lst:
             chan.stop()
         for snd in self._sound_lst:
             snd.close()
+        if self.audio_driver:
+            self.audio_driver.stop_engine()
+            self.audio_driver.close()
 
 
     #-----------------------------------------

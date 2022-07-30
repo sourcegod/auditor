@@ -162,6 +162,7 @@ class Auditor(object):
         
         if self.mixer:
             self.mixer.close()
+            self.mixer = None
 
     #-----------------------------------------
        
@@ -226,6 +227,8 @@ class InterfaceApp(object):
         """
 
         self.stop_midi_thread()
+        if self.aud:
+            self.aud.close()
 
     #-----------------------------------------
      
@@ -565,9 +568,7 @@ class MainApp(object):
             if key < 128:
                 key = chr(key)
             if key == 'Q':
-                self.iap.aud.close()
                 self.iap.close()
-                #aud1.close()
                 break
             elif key == 'f':
                 # chan1.setmute(1, 0)
