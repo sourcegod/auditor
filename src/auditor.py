@@ -215,7 +215,7 @@ class InterfaceApp(object):
 
         self.gen_instruments()
         self.audio_driver.start_engine()
-        # self.start_midi_thread()
+        self.start_midi_thread()
 
     #-----------------------------------------
 

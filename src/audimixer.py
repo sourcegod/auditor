@@ -34,13 +34,16 @@ class AudiMixer(object):
         self._thr_audio = None
         # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
-        self._nchannels =1
+        self._nchannels =2 # TODO: why nchannels not been initialized by init function?
         self._rate = 44100
         self._format =0
         self._in_type = np.int16
         self._out_type = np.int16
         self._mixing =0
         self._max_int16 = 32767
+        self._len_buf = self._buf_size * self._nchannels
+        # to maintaining the audio callback alive
+        self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
 
 
     #-----------------------------------------
@@ -49,6 +52,7 @@ class AudiMixer(object):
         self._nchannels = nchannels
         self._rate = rate
         self._format = format
+        debug("in the mixer init: nchannels: ", self._nchannels)
         if self.audio_driver:
             self.audio_driver.init_audio(nchannels, rate, format)
             self.audio_driver.set_mixer(self)
@@ -78,7 +82,6 @@ class AudiMixer(object):
         chan_num =0
         chan_count =0
         self._mixing =0
-        len1 = self._buf_size * self._nchannels
 
         for (i, chan) in enumerate(self._chan_lst):
             if chan.is_active():
@@ -103,10 +106,10 @@ class AudiMixer(object):
                     snd.set_play_count(0)
                     continue
                 else:
-                    if len(buf1) < len1:
-                        buf1.resize(len1)
+                    if len(buf1) < self._len_buf:
+                        buf1.resize(self._len_buf)
                         chan.set_active(0)
-                        # debug("Buffer resized.")
+                        # debug(f"Buffer resized: {len(buf1)}, with len_buf: {self._len_buf}")
 
                     
                     """
@@ -133,8 +136,6 @@ class AudiMixer(object):
                     # FIX: we cannot modify array that is in readonly, so we copy
                     # to avoid saturation when summing, we divide the amplitude
                     # buf1 = buf1 / 2
-                    # print("voici buf1 type: ",buf1.dtype)
-                    # print("values: ", buf1[:10])
                     buf_lst[i] = buf1
                     chan_num = i
                     chan_count +=1
@@ -144,7 +145,8 @@ class AudiMixer(object):
         if buf_lst.size:
             if chan_count == 0: # no more audio data
                 self._mixing =0
-                return 
+                # maintaining the audio callback alive
+                return self._ret_buf
             elif chan_count == 1: # no copy data
                 out_buf = buf_lst[chan_num] # (buf_lst[chan_num] * 32767).astype('int16')
                 # no copy, but very bad sound
