@@ -132,9 +132,7 @@ class AudiChannel(DspEffect):
 
         # loops -1: infinitly
         # 0: no looping mode
-        # curses.beep()
-        if not snd:
-            return
+        if not snd: return
         self.stop() # stop previus sound
         self._sound = snd
         self._sound.set_loop_count(loops)
@@ -148,7 +146,7 @@ class AudiChannel(DspEffect):
         self._paused =0
         if self._mix_callback:
             # debug("je suis ici pour voir mixcallback")
-            self._mix_callback.start_thread()
+            self._mix_callback.start_engine()
 
     #-----------------------------------------
 
@@ -182,7 +180,7 @@ class AudiChannel(DspEffect):
             self._playing =1
             self._paused =0
         if self._mix_callback:
-            self._mix_callback.start_thread()
+            self._mix_callback.start_engine()
 
     #-----------------------------------------
 

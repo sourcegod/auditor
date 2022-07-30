@@ -249,15 +249,14 @@ class AudiMixer(object):
     #-----------------------------------------
                    
     def play(self):
-        # play all channels
         """
-        self._data = self._getmixdata()
-        self._startthread(self._writedata)
+        play all channels
+        from AudiMixer object
         """
+        
         for i, chan in enumerate(self._chan_lst):
             snd = self._sound_lst[i]
             chan.play(snd)
-
 
     #-----------------------------------------
 
@@ -299,7 +298,11 @@ class AudiMixer(object):
     #-----------------------------------------
         
     def stop(self):
-        # stop all channels
+        """
+        stop all channels
+        from AudiMixer object
+        """
+
         self._playing =0
         for chan in self._chan_lst:
             chan.stop()

@@ -40,6 +40,8 @@ class BaseDriver(object):
         self._driver_index = None # equiv to host api
         self._input_device_index = None
         self._output_device_index = None
+        self._running = False
+
 
     #------------------------------------------------------------------------------
 
@@ -367,9 +369,8 @@ class PortAudioDriver(BaseDriver):
             self._cache_lst = []
         elif self._mixer:
             data =  self._mixer.get_mix_data()
-       
-        # debug("je passe ici %d data_count" % len(data))
-    
+        # debug(f"Data Len") 
+        
         return (data, flag)
 
     #-----------------------------------------
@@ -441,31 +442,34 @@ class PortAudioDriver(BaseDriver):
     #-----------------------------------------
 
 
-    def start_thread(self):
-        """ start threading through portaudio driver object
+    def start_engine(self):
+        """ 
+        start the audiocallback through portaudio driver 
+        from PortAudioDriver object
         """
 
-        # debug("voici format : %s" % self.format)
-        if not self._stream.is_active() or not self._playing:
+        if not self._stream.is_active() or not self._running:
             self._stream.stop_stream()
             if self.set_cache():
-            # if 1:
                 # debug("After Caching...")
                 # debug("voici len buf_lst: %d" % len(self._cache_lst))
                 self._stream.start_stream()
-                self._playing =1
-                # debug("je starte")
+                self._running = True
+                debug("Starting the Stream Callback")
 
     #-----------------------------------------
 
-    def stop_thread(self):
-        """ start threading through portaudio driver object
+    def stop_engine(self):
+        """ 
+        stop  the audio callback through portaudio driver object
+        from PortAudioDriver object
         """
 
-        if self._playing:
+        if self._running:
             self._stream.stop_stream()
-            debug("je stoppe")
-            self._playing =0
+            print("\a")
+            debug("Stopping the stream callback...")
+            self._running = True
    
     #-----------------------------------------
    
