@@ -51,7 +51,7 @@ class AudiMixer(object):
         self._nchannels = nchannels
         self._rate = rate
         self._format = format
-        debug("in the mixer init: nchannels: ", self._nchannels)
+        # debug("in the mixer init: nchannels: ", self._nchannels)
         self._len_buf = self._buf_size * self._nchannels
         self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
 
@@ -319,7 +319,7 @@ class AudiMixer(object):
     
     def close(self):
         if self.audio_driver:
-            self.audio_driver.stop_thread()
+            self.audio_driver.stop_engine()
             self.audio_driver.close()
         for chan in self._chan_lst:
             chan.stop()
