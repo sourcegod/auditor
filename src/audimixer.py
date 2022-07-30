@@ -5,6 +5,8 @@
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """
+
+import time
 import numpy as np
 # import audisample as ausam
 import audisample2 as ausam
@@ -320,7 +322,7 @@ class AudiMixer(object):
     def close(self):
         print("Closing the mixer...")
         for chan in self._chan_lst:
-            chan.stop()
+            chan.stop(closing=True)
         for snd in self._sound_lst:
             snd.close()
         if self.audio_driver:

@@ -150,7 +150,7 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def stop(self):
+    def stop(self, closing=False):
         """
         stop channel
         from AudiChannel object
@@ -158,7 +158,8 @@ class AudiChannel(DspEffect):
 
         if self._sound:
             self._active =0
-            self._sound.set_position(0)
+            if not closing:
+                self._sound.set_position(0)
             self._playing =0
             self._paused =0
 

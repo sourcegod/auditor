@@ -26,42 +26,12 @@ class AudiStream(AudiSoundBase):
         # load stream
         from AudiStream object
         """
-
-        """
-        self._filename = filename
-        try:
-            self._wavfile = wave.open(filename, 'rb')
-        except IOError:
-            print("Error: unable to load file in memory")
-            return
         
-        # sampwidth: number of byte per samples: in bytes
-        # nchannels: number of channels
-        # rate: sampling rate per second
-        # nframes: total number of samples for audio data in bytes
-        # framesize = nchannels * sampwidth = 4 bytes (2*2)
-        # for 2 channels, 16 bits
-        
-        self._nchannels = self._wavfile.getnchannels()
-        self._sampwidth = self._wavfile.getsampwidth()
-        self._rate = self._wavfile.getframerate()
-        self._nframes = self._wavfile.getnframes()
-
-        # duration = nframes / rate in second
-        # length in second
-        # length = (self._nchannels * self._sampwidth * self.nframes) / 
-        # (self._nchannels * self._sampwidth * self._rate)
-        # equiv': 
-        self._length = self._nframes # in frames
-        return self._wavfile
-        """
-
         sf_info = None
-
         try: 
             sf_info = sf.info(filename)
         except RuntimeError as err:
-            print("Error info, unable to open file: ", err)
+            print("Error info, unable to open stream file: ", err)
             return
 
         # sampwidth: number of byte per samples: in bytes
@@ -92,7 +62,6 @@ class AudiStream(AudiSoundBase):
             return
   
         return self
- 
     
     #-----------------------------------------
 
@@ -103,6 +72,8 @@ class AudiStream(AudiSoundBase):
                 self._wavfile.close()
             except IOError:
                 print("Error: unable to close file: %s" % self._filename)
+            
+            print(f"Closing stream file: {self._filename}")
             
     #-----------------------------------------
 
