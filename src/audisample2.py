@@ -143,6 +143,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             self.load(filename)
         elif mode == 1: # create empty sample
             self.init_sample(bits, rate, channels, nbsamples)
+        self._wavbuf_arr = None
 
     #-----------------------------------------
     
@@ -156,6 +157,64 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # sound compare with == operator
         return self.__dict__ == other.__dict__
 
+    #-----------------------------------------
+
+    def load_0(self, filename):
+        """ 
+        Deprecated function based on SoundBuffer object
+        load entire sound into memory with pysoundfile module 
+        from audisample object
+        """
+
+        wav_data = None
+        sf_info = None
+
+        try: 
+            sf_info = sf.info(filename)
+        except RuntimeError as err:
+            print("Error info, unable to open file: ", err)
+            return
+
+        # sampwidth: number of byte per samples: in bytes
+        # nchannels: number of channels
+        # rate: sampling rate per second
+        # nframes: total number of samples for audio data in bytes
+        # framesize = nchannels * sampwidth = 4 bytes (2*2)
+        # for 2 channels, 16 bits
+        
+        if sf_info:
+            self._filename = filename
+            self._nchannels = sf_info.channels
+            # subtype is a string like: "PCM_16"
+            # so we need to extract the number
+            try:
+                bits = int(sf_info.subtype.split('_')[1])
+            except ValueError:
+                bits =0
+            self._bits = bits
+            self._sampwidth = (bits * self._nchannels) / 8
+            self._rate = sf_info.samplerate
+            self._nframes = sf_info.frames
+            self._length = self._nframes # in frames
+
+
+        # duration = nframes / rate in second
+        # length in second
+        # length = (self._nchannels * self._sampwidth * self.nframes) / 
+        # (self._nchannels * self._sampwidth * self._rate)
+        # equiv': self._length = self._nframes / float(self._rate)
+        try:
+            (wav_data, rate) = sf.read(filename)
+        except RuntimeError as err:
+            print(f"Error: unable to load in memory wave file: {filename}")
+            return
+  
+        # self._wavbuf_arr = wav_data.flatten()
+        self._soundbuf = SoundBuffer(wav_data)
+        self._soundbuf.set_params(self._nchannels, self._rate, self._bits)
+
+        return self
+    
     #-----------------------------------------
 
     def load(self, filename):
@@ -207,12 +266,12 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             print(f"Error: unable to load in memory wave file: {filename}")
             return
   
-        # self._wavbuf_arr = wav_data.flatten()
-        self._soundbuf = SoundBuffer(wav_data)
-        self._soundbuf.set_params(self._nchannels, self._rate, self._bits)
+        self._wavbuf_arr = wav_data.flatten()
+
         return self
     
     #-----------------------------------------
+
 
     def close(self):
         """ 
@@ -269,13 +328,13 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
 
     #-----------------------------------------
 
-    def read_data0(self, nb_frames):
+    def read_data(self, nb_frames):
         """
         Temporary function, just to backup old version based on samples instead frames
         from AudiSample object
         """
 
-        """
+        # """
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         # curpos in frames
         pos = int(self._curpos * self._nchannels) # in samples
@@ -287,11 +346,10 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             if pos + nb_samples < end_pos:
                 step = pos + nb_samples # in samples
                 try:
-                    # buf_lst = self._wavbuf_lst[pos:step]
                     buf_arr = self._wavbuf_arr[pos:step]
                 except IndexError:
                     # debug("Error in read_data from sample object, voici step: %d" % step)
-                    print("index_rror: unable to index in read_data from sample object")
+                    print("indexError: unable to index in read_data from sample object")
                 
                 self._curpos = int(step / self._nchannels) # in frames
 
@@ -305,10 +363,16 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
                     self._curpos = start_pos # in frames
                 else: # no looping
                     # add zeros at the end to adjust length sample
+                    
+                    """
+                    # now, no need to be resized because its managing by the mixer for performance reason
                     len1 = len(self._wavbuf_arr[pos:end_pos])
                     # must be copied before resizing
                     buf_arr = np.copy(self._wavbuf_arr[pos:end_pos])
                     buf_arr.resize(nb_samples)
+                    """
+
+                    buf_arr = np.copy(self._wavbuf_arr[pos:end_pos])
                     self._curpos = end_pos -1 # in frames
                     # debug("voici pos: %d, end_pos: %d, len1 %d, et len_buf %d" %(pos, end_pos, len1, len(buf_lst)))
         else: # whether pos > to sample length
@@ -316,12 +380,13 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             pass
 
         return buf_arr
-        """
+        # """
 
     #-----------------------------------------
 
-    def read_data(self, nb_frames):
+    def read_data_0(self, nb_frames):
         """ 
+        Deprecated function based on SoundBuffer object
         read nb_frames frames in file in memory 
         from audisample object
         """
@@ -368,9 +433,14 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
                 curpos += nb_frames2
                 self.set_position(curpos)
             else: # not looping
+                
+                """
+                # Now, no need to resized the array, its managing by the mixer, for performance reason
                 # fill the rest of the array with zeros 
                 wav_data = np.copy(wav_data)
                 # wav_data.resize(nb_samples)
+                """
+
                 curpos = self.get_position(0)
                 curpos += nb_frames1
                 self.set_position(curpos)
@@ -434,8 +504,9 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
     
     #-----------------------------------------
     
-    def get_position(self, unit=0):
-        """ 
+    def get_position_0(self, unit=0):
+        """
+        Deprecated function based on SoundBuffer object
         returns position 
         from audisample object
         """
@@ -456,9 +527,28 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
 
     #-----------------------------------------
 
-
-    def set_position(self, pos, unit=0):
+    def get_position(self, unit=0):
         """ 
+        returns position 
+        from audisample object
+        """
+
+        # position in frames, second, samples, or bytes
+        # unit=0: in frames
+        # convert curpos to unit
+        # curpos in frames
+        # debug("voici curpos in frames : %d" %(self._curpos))
+        # not necessary
+        # no convert float to int to be precise in position
+           
+        return self._curpos
+
+    #-----------------------------------------
+
+
+    def set_position_0(self, pos, unit=0):
+        """ 
+        Deprecated function based on SoundBuffer object
         set sound position 
         from audisample object
         """
@@ -481,9 +571,36 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         self._soundbuf.seek(pos)
 
     #-----------------------------------------
-   
-    def reverse(self):
+
+    def set_position(self, pos, unit=0):
+        """ 
+        set sound position 
+        from audisample object
         """
+        
+        # set_position function take frames samples number
+        # frames, seconds, samples or bytes
+        # unit=0: for frames samples
+        # unit=1: for seconds
+        # unit=2: for bytes
+        # convert pos to frames bellong unit
+        # debug("dans sample set_pos: pos: %.2f" %(pos))
+        # not necessary and prenvent to convert float to int
+        # pos = self.unit_to_frames(pos, unit)
+        if pos <0:
+            pos =0
+        elif pos >= self._length: # length in frames
+            pos = self._length
+            # debug("pos is greater than length: %d" %(self._length))
+        
+        self._curpos = pos # in frames
+
+    #-----------------------------------------
+   
+   
+    def reverse_0(self):
+        """
+        Deprecated function based on SoundBuffer object
         reverse sound
         from AudiSample object
         """
@@ -495,7 +612,20 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             self._soundbuf.set_data(data[::-1])
         
     #-----------------------------------------
-    
+
+    def reverse(self):
+        """
+        reverse sound
+        from AudiSample object
+        """
+        
+        if self._nframes:
+            # change the strides of numpy array
+            # reverse numpy data
+            self._wavbuf_arr = self._wavbuf_arr[::-1]
+        
+    #-----------------------------------------
+     
     def get_raw_list(self):
         """
         returns the sound raw data
