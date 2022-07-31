@@ -14,6 +14,7 @@ import audisample2 as ausam
 import audistream2 as austr
 import audichannel as auchan
 # import audiport as aup
+import audicache as auc
 DEBUG =1 
 def debug(msg="", title="", bell=True):
     if DEBUG:
@@ -60,7 +61,10 @@ class AudiMixer(object):
         if self.audio_driver:
             self.audio_driver.init_audio(nchannels, rate, format)
             self.audio_driver.set_mixer(self)
-
+        # create cache data
+        self.cacher = auc.AudiCache(self)
+        self.cacher.init_cache()
+        self.cacher.preload()
 
         # create reserved channel for beep
         self.chan_beep = self.create_channel(1000)
@@ -352,7 +356,6 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-   
 #========================================
 
 if __name__ == "__main__":
