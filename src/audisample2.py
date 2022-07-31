@@ -276,7 +276,6 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         from AudiSample object
         """
 
-        # """
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         # curpos in frames
         pos = int(self._curpos * self._nchannels) # in samples
@@ -321,8 +320,8 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             # debug("je passe dans read_data de sample : %d bytes" % len(buf_lst)) 
             pass
 
-        return buf_arr
-        # """
+        # explicit copy, to not modify the original data
+        return np.copy(buf_arr)
 
     #-----------------------------------------
 

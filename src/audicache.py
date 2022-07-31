@@ -31,7 +31,7 @@ class AudiCache(object):
         self._buf_size = self._mixer._buf_size
         self._in_type = self._mixer._in_type
         self._len_buf = self._mixer._len_buf
-        self.cache_data = np.zeros((8, self._len_buf), self._in_type)
+        self.cache_data = np.zeros((8, self._len_buf), dtype=self._in_type)
 
     #-----------------------------------------
     
@@ -44,16 +44,25 @@ class AudiCache(object):
         if not self._mixer: False
         if not self.cache_data.size: return False
         chan_lst = self._mixer._chan_lst
+        if not chan_lst:
+            print("No data is caching...")
+            return False
         try:
             for (i, chan) in enumerate(chan_lst):
                 if i < len(self.cache_data):
-                    self.cache_data[i] = chan.read_data(self._buf_size)
-                    self.is_caching = True
+                    snd = self._mixer.get_sound_by_index(i)
+                    if not snd: continue
+                    else:
+                        self.cache_data[i] = snd.read_data(self._buf_size)
+                        self.is_caching = True
+                        # print(f"find caching sound on channel {i}")
                 else: break
         except IndexError:
             self.is_caching = False
             return False
-        print("Preloading cache...")
+        
+        if self.is_caching:
+            print("Preloading cache...")
         
         return True
 

@@ -5,6 +5,7 @@ File: audichannel.py:
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """
+import numpy as np
 class DspEffect(object):
     """ effect manager """
     def __init__(self):
@@ -35,7 +36,10 @@ class DspEffect(object):
         from DspEffect object
         """
 
+        
+        # must be same type for multipliy in place, so verify wavebuf type at the beginning
         wavebuf *= val
+        # print("wavebuf type: ",wavebuf.dtype)
 
     #-----------------------------------------
 
@@ -99,8 +103,6 @@ class AudiChannel(DspEffect):
         self._leftmute =1 # for left channel mute
         self._rightmute =1 # for right channel mute
         self._vel =1
-
-
 
     #-----------------------------------------
 
@@ -372,7 +374,7 @@ class AudiChannel(DspEffect):
         
         self._vel = self.limit_value(-1, self._maxvel, vel)
         if self._vel >=0:
-            self._vel /= self._maxvel
+            self._vel /= float(self._maxvel)
 
     #-----------------------------------------
 

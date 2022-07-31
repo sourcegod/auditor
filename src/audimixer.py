@@ -40,13 +40,19 @@ class AudiMixer(object):
         self._nchannels =1 # TODO: why nchannels not been initialized by init function?
         self._rate = 44100
         self._format =0
-        self._in_type = np.int16
+        self._in_type = np.float64
         self._out_type = np.int16
         self._mixing =0
         self._max_int16 = 32767
         self._len_buf =1
         # to maintaining the audio callback alive
         self._ret_buf = None
+        self.cacher = None
+
+    #-----------------------------------------
+
+    def __del__(self):
+        self.close()
 
     #-----------------------------------------
 
@@ -71,12 +77,6 @@ class AudiMixer(object):
     
     #-----------------------------------------
      
-    def __del__(self):
-        self.close()
-        pass
-
-    #-----------------------------------------
-
     def get_mix_data(self): 
         """ 
         mixing audio data 
@@ -90,12 +90,28 @@ class AudiMixer(object):
         chan_num =0
         chan_count =0
         self._mixing =0
+        cacher = self.cacher
+        caching = False
+
 
         for (i, chan) in enumerate(self._chan_lst):
             if chan.is_active():
                 snd = chan.get_sound()
                 curpos = snd.get_position(0) # in frames
                 endpos = snd.get_end_position(0) # in frames
+                
+                """
+                if curpos == 0:
+                    print(f"\ncurpos: {curpos}, caching: {cacher.is_caching}\n")
+                """
+                # """
+                if cacher.is_caching and curpos == 0:
+                    buf1 = np.copy(cacher.cache_data[i])
+                    snd.set_position(self._buf_size)
+                    caching = True
+                    # print("its caching...")
+                # """
+                
                 if curpos >= endpos:
                     # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
                     snd.loop_manager()
@@ -107,9 +123,12 @@ class AudiMixer(object):
                 # cause buf in byte, one frame = 4 bytes, 2 signed short, 
                 # for 16 bits, 2 channels, 44100 rate,
                 
-                buf1 = snd.read_data(self._buf_size) 
+                if not caching:
+                    buf1 = snd.read_data(self._buf_size)
+                    pass
                 if not buf1.size:
                     debug("not buf1")
+                    pass
                     chan.set_active(0)
                     snd.set_play_count(0)
                     continue
@@ -205,6 +224,19 @@ class AudiMixer(object):
 
     #-----------------------------------------
               
+    def get_sound_by_index(self, index):
+        """
+        returns sound from sound list
+        from AudiMixer object
+        """
+        
+        try:
+            return self._sound_lst[index]
+        except IndexError:
+            return
+
+    #-----------------------------------------
+
     def beep(self, freq=440, lensec=1, loops=-2):
         """ beep square wave through mixer object
         freq: in hertz

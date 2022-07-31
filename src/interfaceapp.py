@@ -139,6 +139,9 @@ class InterfaceApp(object):
 
         if self.audio_driver:
             self.gen_instruments()
+            if self.mixer:
+                cacher = self.mixer.cacher
+                cacher.preload()
             self.audio_driver.start_engine()
             self.start_midi_thread()
 
