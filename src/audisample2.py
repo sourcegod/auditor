@@ -437,16 +437,6 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         
     #-----------------------------------------
      
-    def is_mono(self):
-        """
-        returns whether the audio file is mono
-        from AudiSample object
-        """
-
-        return self._nchannels == 1
-
-    #-----------------------------------------
-
     def get_raw_list(self):
         """
         returns the sound raw data

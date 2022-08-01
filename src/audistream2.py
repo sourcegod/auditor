@@ -128,6 +128,10 @@ class AudiStream(AudiSoundBase):
 
         # convert buf_arr in one dimensional array
         self._buf_arr = wav_data.flatten()
+        if self.is_mono():
+            # repeat each value to convert mono to stereo
+            self._buf_arr = np.repeat(self._buf_arr, 2)
+ 
         return self._buf_arr
 
     #-----------------------------------------

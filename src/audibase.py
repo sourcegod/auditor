@@ -223,6 +223,16 @@ class AudiSoundBase(object):
        
     #-----------------------------------------
  
+    def is_mono(self):
+        """
+        returns whether the audio file is mono
+        from AudiBase object
+        """
+
+        return self._nchannels == 1
+
+    #-----------------------------------------
+
     def get_raw_list(self):
         """ return the sound raw data from soundbase object
         """
