@@ -338,6 +338,28 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def play_instru(self, instru=None):
+        """
+        temporary function to play instrument
+        from AudiMixer object
+        """
+
+        if instru is None: return
+        instru.chan.play(instru.snd, instru.loop_count)
+
+    #-----------------------------------------
+
+    def stop_instru(self, instru=None):
+        """
+        temporary function to stop instrument
+        from AudiMixer object
+        """
+
+        if instru is None: return
+        instru.chan.stop()
+
+    #-----------------------------------------
+
     def pause(self):
         self._playing =0
 

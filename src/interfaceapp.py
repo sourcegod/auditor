@@ -220,9 +220,12 @@ class InterfaceApp(object):
             if instru.chan.is_vel():
                 instru.m_vel = m_vel
                 instru.chan.set_vel(m_vel)
-            instru.chan.play(instru.snd, loop_count)
+            # instru.chan.play(instru.snd, loop_count)
+            self.mixer.play_instru(instru)
         elif m_type == "note_off":
-            if instru.chan_mode == 0: instru.chan.stop()
+            if instru.chan_mode == 0: 
+                # instru.chan.stop()
+                self.mixer.stop_instru(instru)
 
     #-----------------------------------------
 
