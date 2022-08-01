@@ -106,29 +106,6 @@ class InterfaceApp(object):
         self._midi_out = None
         self._instru_lst = []
 
-        fname1 = path.join(_mediadir, "drumloop.wav")
-        fname2 = path.join(_mediadir, "funky.wav")
-        fname3 = path.join(_mediadir, "latin.wav")
-        fname4 = path.join(_mediadir, "wave.wav")
-        fname5 = path.join(_mediadir, "singing.wav")
-
-        self.snd1 = self.mixer.create_sample(fname1)
-        self.snd2 = self.mixer.create_sample(fname2)
-        self.snd3 = self.mixer.create_sample(fname3)
-        self.snd4 = self.mixer.create_stream(fname4)
-        self.snd5 = self.mixer.create_stream(fname2)
-        self.snd6 = self.mixer.create_stream(fname5)
-
-        # snd4 = snd3
-        self.chan1 = self.mixer.create_channel(1)
-        # chan1.set_volume(16)
-        # chan1.set_panning(127, 0)
-        self.chan2 = self.mixer.create_channel(2)
-        self.chan3 = self.mixer.create_channel(3)
-        self.chan4 = self.mixer.create_channel(4)
-        self.chan5 = self.mixer.create_channel(5)
-        self.chan6 = self.mixer.create_channel(6)
-
     #-----------------------------------------
     
     def init_app(self, audio_driver=None, output_index=None):
@@ -138,6 +115,7 @@ class InterfaceApp(object):
         """
 
         if self.audio_driver:
+            self.gen_channels()
             self.gen_instruments()
             if self.mixer:
                 cacher = self.mixer.cacher
@@ -160,6 +138,48 @@ class InterfaceApp(object):
 
     #-----------------------------------------
      
+    def gen_channels(self):
+        """
+        Generate default channels and sounds
+        from InterfaceApp object
+        """
+
+        fname1 = path.join(_mediadir, "drumloop.wav")
+        fname2 = path.join(_mediadir, "funky.wav")
+        fname3 = path.join(_mediadir, "latin.wav")
+        fname4 = path.join(_mediadir, "wave.wav")
+        fname5 = path.join(_mediadir, "singing.wav")
+        fname6 = path.join(_mediadir, "a440.wav")
+        fname7 = path.join(_mediadir, "guitar_1.wav")
+        fname8 = path.join(_mediadir, "piano_1.wav")
+
+        # in memory
+        snd1 = self.mixer.create_sample(fname1)
+        snd2 = self.mixer.create_sample(fname2)
+        snd3 = self.mixer.create_sample(fname3)
+        # same wave but in reverse mode
+        snd4 = self.mixer.create_sample(fname3)
+        
+        # in streaming
+        snd5 = self.mixer.create_stream(fname4)
+        snd6 = self.mixer.create_stream(fname2)
+        snd7 = self.mixer.create_stream(fname5)
+
+        """
+        # inn memory        
+        snd8 = self.mixer.create_sample(fname6)
+        snd9 = self.mixer.create_sample(fname7)
+        snd10 = self.mixer.create_sample(fname8)
+        # snd4 = snd3
+        """
+
+        for i in range(10):
+            self.mixer.create_channel(i)
+            # chan1.set_volume(16)
+            # chan1.set_panning(127, 0)
+
+    #-----------------------------------------
+
     def gen_instruments(self, count=16):
         """
         generate instruments list
@@ -183,7 +203,7 @@ class InterfaceApp(object):
 
         
         for instru in self._instru_lst:
-            if instru.key in (37,):
+            if instru.key == 37:
                 instru.chan_mode =1 # mode continue
             if instru.key == 38:
                 # instru.snd.set_loop_count(2)
@@ -191,6 +211,10 @@ class InterfaceApp(object):
                 instru.chan_mode =1
                 instru.loop_mode =1
                 instru.loop_count =-1
+
+            if instru.key == 39: # reverse sound
+                instru.snd.reverse()
+
 
             if instru.key == 40: # no velocity
                 instru.m_vel =-1
@@ -205,9 +229,13 @@ class InterfaceApp(object):
         object
         """
         
-        # print(f"note_num: {note_num}")
-        if m_note >= 36: m_note -= 36
+        # print(f"note_num: {m_note}")
         loop_count =0
+        if m_note == 96:
+            self.mixer.stop_all()
+            return
+
+        if m_note >= 36: m_note -= 36
         if m_note >= len(self._instru_lst):
             print("\a")
             return

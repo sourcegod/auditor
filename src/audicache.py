@@ -50,7 +50,7 @@ class AudiCache(object):
         try:
             for (i, chan) in enumerate(chan_lst):
                 if i < len(self.cache_data):
-                    snd = self._mixer.get_sound_by_index(i)
+                    snd = self._mixer.get_sound_by_id(i)
                     if not snd: continue
                     else:
                         self.cache_data[i] = snd.read_data(self._buf_size)

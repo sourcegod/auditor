@@ -59,49 +59,54 @@ class MainApp(object):
                 break
             elif key == 'f':
                 # chan1.setmute(1, 0)
-                self.iap.chan1.play(self.iap.snd1)
+                (chan, snd) = self.mixer.get_chan_sound(0, 0)
+                self.mixer.play_channel(0, 0)
             elif key == 'g':
-                # self.iap.snd2.set_loop_count(2)
-                self.iap.snd2.set_loop_mode(1)
-                # snd2.set_loop_points(0, 1, unit=1) # in seconds
-                self.iap.chan2.play(self.iap.snd2, loops=-1)
+                (chan, snd) = self.mixer.get_chan_sound(1, 1)
+                snd.set_loop_mode(1)
+                self.mixer.play_channel(1, 1, loops=-1)
             elif key == 'h':
-                self.iap.snd3.reverse()
-                self.iap.snd3.set_loop_mode(1)
-                self.iap.chan3.play(self.iap.snd3, loops=-1)
+                (chan, snd) = self.mixer.get_chan_sound(3, 3)
+                snd.reverse()
+                snd.set_loop_mode(1)
+                chan.play(snd, loops=-1)
             elif key == 'j':
                 # test different sound on same channel
-                self.iap.chan2.play(self.iap.snd4, 0)
+                (chan, snd) = self.mixer.get_chan_sound(2, 4)
+                chan.play(snd, 0)
             elif key == 'k':
                 # stream test
                 # snd4.set_loop_mode(1)
-                self.iap.snd4.set_loop_points(5, 10, 1)
-                self.iap.chan4.play(self.iap.snd4, -1)
+                (chan, snd) = self.mixer.get_chan_sound(4, 4)
+                snd.set_loop_points(5, 10, 1)
+                chan.play(snd, -1)
             elif key == 'l':
-                self.iap.snd5.set_loop_mode(1)
+                (chan, snd) = self.mixer.get_chan_sound(5, 5)
+                snd.set_loop_mode(1)
                 loops =-1 # infinitely
-                self.iap.chan5.play(self.iap.snd5, loops)
-                pass
+                chan.play(snd, loops)
             elif key == 'm':
-                self.iap.chan6.play(self.iap.snd6)
+                (chan, snd) = self.mixer.get_chan_sound(6, 6)
+                chan.play(snd)
             elif key == 'x':
                 # aud.mixer.play()
                 pass
             elif key == 'c':
-                self.iap.mixer.pause()
+                self.mixer.pause()
             elif key == 'v':
                 # stop all channels
-                self.iap.mixer.stop()
+                self.mixer.stop_all()
             elif key == 'V':
                 # stop the audio engine
                 self.iap.stop_audio_engine()
             elif key == 'b':
-                self.iap.chan1.forward(1)
+                self.mixer.forward(1)
             elif key == 'z':
-                self.iap.chan1.rewind(1)
+                self.mixer.rewind(1)
             elif key == 'G':
-                curpos = self.iap.chan1.get_position(1)
-                dur = self.iap.chan1.get_length(1)
+                (chan, snd) = self.mixer.get_chan_sound(0, 0)
+                curpos = chan.get_position(1)
+                dur = chan.get_length(1)
             elif key == 'S': 
                 # stop midi thread
                 self.iap.stop_midi_thread()
@@ -112,9 +117,11 @@ class MainApp(object):
                 # print("Status: channels: %d, samplewidth: %d, rate: %d" %(aud.getfileinfo()))
                 pass
             elif key == '<':
-                self.iap.chan1.setstart()
+                (chan, snd) = self.mixer.get_chan_sound(0, 0)
+                chan.setstart()
             elif key == '>':
-                self.iap.chan1.setend()
+                (chan, snd) = self.mixer.get_chan_sound(0, 0)
+                chan.setend()
             else:
                 curses.beep()
 

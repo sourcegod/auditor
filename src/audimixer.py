@@ -70,7 +70,6 @@ class AudiMixer(object):
         # create cache data
         self.cacher = auc.AudiCache(self)
         self.cacher.init_cache()
-        self.cacher.preload()
 
         # create reserved channel for beep
         self.chan_beep = self.create_channel(1000)
@@ -224,19 +223,6 @@ class AudiMixer(object):
 
     #-----------------------------------------
               
-    def get_sound_by_index(self, index):
-        """
-        returns sound from sound list
-        from AudiMixer object
-        """
-        
-        try:
-            return self._sound_lst[index]
-        except IndexError:
-            return
-
-    #-----------------------------------------
-
     def beep(self, freq=440, lensec=1, loops=-2):
         """ beep square wave through mixer object
         freq: in hertz
@@ -294,7 +280,7 @@ class AudiMixer(object):
 
     #-----------------------------------------
                    
-    def play(self):
+    def play_all(self):
         """
         play all channels
         from AudiMixer object
@@ -306,7 +292,24 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-    def play_channel(self, chan_num, snd_num=0):
+    def pause(self):
+        self._playing =0
+
+    #-----------------------------------------
+        
+    def stop_all(self):
+        """
+        stop all channels
+        from AudiMixer object
+        """
+
+        self._playing =0
+        for chan in self._chan_lst:
+            chan.stop()
+
+    #-----------------------------------------
+ 
+    def play_channel(self, chan_num, snd_num=0, loops=0):
         """
         play channel with associated sound
         from AudiMixer object
@@ -317,7 +320,7 @@ class AudiMixer(object):
             snd = self._sound_lst[snd_num]
         except IndexError:
             return
-        chan.play(snd)
+        chan.play(snd, loops)
 
         return True
 
@@ -360,23 +363,6 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-    def pause(self):
-        self._playing =0
-
-    #-----------------------------------------
-        
-    def stop(self):
-        """
-        stop all channels
-        from AudiMixer object
-        """
-
-        self._playing =0
-        for chan in self._chan_lst:
-            chan.stop()
-
-    #-----------------------------------------
-    
     def close(self):
         print("Closing the mixer...")
         for chan in self._chan_lst:
@@ -409,6 +395,52 @@ class AudiMixer(object):
         return self._chan_lst
 
     #-----------------------------------------
+
+    def get_sound_by_id(self, index):
+        """
+        returns sound from sound list
+        from AudiMixer object
+        """
+        
+        try:
+            return self._sound_lst[index]
+        except IndexError:
+            return
+
+    #-----------------------------------------
+
+    def get_chan_by_id(self, index):
+        """
+        returns channel from chan list
+        from AudiMixer object
+        """
+        
+        try:
+            return self._chan_lst[index]
+        except IndexError:
+            return
+
+    #-----------------------------------------
+
+    def get_chan_sound(self, chan_id, snd_id):
+        """
+        returns channel and sound
+        from AudiMixer object
+        """
+
+        chan = None
+        snd = None
+        
+        try:
+            chan = self._chan_lst[chan_id]
+            snd = self._sound_lst[snd_id]
+        except IndexError:
+            pass
+        return (chan, snd)
+
+    #-----------------------------------------
+
+
 
 #========================================
 
