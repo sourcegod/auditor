@@ -31,7 +31,7 @@ class AudiCache(object):
         self._buf_size = self._mixer._buf_size
         self._in_type = self._mixer._in_type
         self._len_buf = self._mixer._len_buf
-        self.cache_data = np.zeros((8, self._len_buf), dtype=self._in_type)
+        self.cache_data = np.zeros((16, self._len_buf), dtype=self._in_type)
 
     #-----------------------------------------
     

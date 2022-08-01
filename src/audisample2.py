@@ -319,8 +319,10 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         else: # whether pos > to sample length
             # debug("je passe dans read_data de sample : %d bytes" % len(buf_lst)) 
             pass
-
-        # explicit copy, to not modify the original data
+        if self.is_mono():
+            buf_arr =np.array([[i, i] for i in buf_arr]).reshape(-1,)
+        
+        # explicit copy, to not modify the original data 
         return np.copy(buf_arr)
 
     #-----------------------------------------
@@ -434,6 +436,16 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         
     #-----------------------------------------
      
+    def is_mono(self):
+        """
+        returns whether the audio file is mono
+        from AudiSample object
+        """
+
+        return self._nchannels == 1
+
+    #-----------------------------------------
+
     def get_raw_list(self):
         """
         returns the sound raw data

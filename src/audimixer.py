@@ -82,7 +82,7 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
+        buf_lst = np.zeros((16, self._nchannels * self._buf_size), dtype=np.float32)
         buf1 = np.array([], dtype=np.float32)
         out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")

@@ -165,13 +165,11 @@ class InterfaceApp(object):
         snd6 = self.mixer.create_stream(fname2)
         snd7 = self.mixer.create_stream(fname5)
 
-        """
-        # inn memory        
+        # inn memory
+        # mono sample
         snd8 = self.mixer.create_sample(fname6)
         snd9 = self.mixer.create_sample(fname7)
         snd10 = self.mixer.create_sample(fname8)
-        # snd4 = snd3
-        """
 
         for i in range(10):
             self.mixer.create_channel(i)
@@ -192,6 +190,7 @@ class InterfaceApp(object):
         chan_lst = self.mixer.get_channels()
         snd_lst = self.mixer.get_sounds()
 
+        # print("len chan_lst: ", len(chan_lst), len(snd_lst))
         for (i, item) in enumerate(chan_lst):
             instru = InstruObj()
             instru.id = i+1
