@@ -69,7 +69,7 @@ class AudiMixer(object):
             self.audio_driver.set_mixer(self)
         # create cache data
         self.cacher = auc.AudiCache(self)
-        self.cacher.init_cache()
+        # self.cacher.init_cache()
 
         # create reserved channel for beep
         self.chan_beep = self.create_channel(1000)

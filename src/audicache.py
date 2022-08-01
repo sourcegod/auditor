@@ -20,7 +20,7 @@ class AudiCache(object):
 
     #-----------------------------------------
     
-    def init_cache(self):
+    def init_cache(self, nb_chan=1):
         """
         initialize the data cache
         from AudiCache object
@@ -31,7 +31,7 @@ class AudiCache(object):
         self._buf_size = self._mixer._buf_size
         self._in_type = self._mixer._in_type
         self._len_buf = self._mixer._len_buf
-        self.cache_data = np.zeros((16, self._len_buf), dtype=self._in_type)
+        self.cache_data = np.zeros((nb_chan, self._len_buf), dtype=self._in_type)
 
     #-----------------------------------------
     
@@ -41,9 +41,11 @@ class AudiCache(object):
         from AudiCache object
         """
         
-        if not self._mixer: False
+        if not self._mixer: return False
+        chan_lst = self._mixer.get_channels()
+        nb_chan  = len(chan_lst)
+        self.init_cache(nb_chan)
         if not self.cache_data.size: return False
-        chan_lst = self._mixer._chan_lst
         if not chan_lst:
             print("No data is caching...")
             return False
