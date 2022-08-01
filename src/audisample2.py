@@ -320,7 +320,8 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             # debug("je passe dans read_data de sample : %d bytes" % len(buf_lst)) 
             pass
         if self.is_mono():
-            buf_arr =np.array([[i, i] for i in buf_arr]).reshape(-1,)
+            # repeat each value to convert mono to stereo
+            return np.repeat(buf_arr, 2)
         
         # explicit copy, to not modify the original data 
         return np.copy(buf_arr)
