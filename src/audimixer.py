@@ -282,7 +282,10 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
+        # buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
+        # take less place in memory
+        nb_virchan =8
+        buf_lst = [0] * nb_virchan
         buf1 = np.array([], dtype=np.float32)
         out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")
@@ -290,6 +293,7 @@ class AudiMixer(object):
         chan_count =0
         self._mixing =0
         cacher = self.cacher
+        len_cache = cacher.len_cache
         caching = False
         self._roll_lst.last()
 
@@ -304,12 +308,21 @@ class AudiMixer(object):
                 if curpos == 0:
                     print(f"\ncurpos: {curpos}, caching: {cacher.is_caching}\n")
                 """
+                
                 # """
-                if cacher.is_caching and curpos == 0:
-                    buf1 = np.copy(cacher.cache_data[i])
-                    snd.set_position(self._buf_size)
-                    caching = True
-                    # print("its caching...")
+                if cacher.is_caching and i < len_cache: 
+                    if curpos == 0:
+                        buf1 = np.copy(cacher.cache_data[i])
+                        snd.set_position(self._buf_size)
+                        caching = True
+                        print(f"its caching... curpos: {curpos}")
+                    elif curpos >= self._buf_size and\
+                            curpos < self._len_buf:
+                        buf1 = np.copy(cacher.cache_data[i])
+                        snd.set_position(curpos + self._buf_size)
+                        caching = True
+                        print(f"its caching... curpos: {curpos}")
+                # 
                 # """
                 
                 if curpos >= endpos:
@@ -363,62 +376,65 @@ class AudiMixer(object):
                     # FIX: we cannot modify array that is in readonly, so we copy
                     # to avoid saturation when summing, we divide the amplitude
                     # buf1 = buf1 / 2
+                    
+                    # verify whether there is a free place
                     num = self._roll_lst.next()
-                    # print(f"voici num: {num}")
-                    buf_lst[num] = buf1
-                    chan_num = num
-                    chan_count +=1
-                    # debug("voici i: %d et shape: %s" %(i, buf1.shape))
+                    if num < len(buf_lst):
+                        # buf_lst[chan_num] = buf1
+                        buf_lst[num] = buf1
+                        # chan_num = i
+                        chan_num = num
+                        chan_count +=1
+                        # debug("voici i: %d et shape: %s" %(i, buf1.shape))
         
         # out of the loop
-        if buf_lst.size:
-            if chan_count == 0: # no more audio data
-                self._mixing =0
-                # maintaining the audio callback alive
-                return self._ret_buf
-            elif chan_count == 1: # no copy data
-                out_buf = buf_lst[chan_num] # (buf_lst[chan_num] * 32767).astype('int16')
-                # no copy, but very bad sound
-                # out_buf = buf_lst[chan_num].view(self._out_type)
-                # debug("Yes mannn")
-            elif chan_count >= 2:
-                # passing the type of array result to avoid copy with astype letter
-               
-                # avoid saturation, but no copy
-                max_amp = np.max(np.abs(buf_lst))
-                # print(f"voici max: {val_max}")
-                # TODO: find better solution for readjust level after mixing
-                coef = 1/np.sqrt(2)
-                for buf in buf_lst: buf *= coef # temporary
-                line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
-                # readjust the volume
-                # TODO: normalize it
-                max_amp = np.max(line)
-                # line += (1.0 - max_amp)
-                # line += 0.2 # FIXIT
-                # print(f"voici max_amp: {max_amp}, et max_line: {1.0 - max_amp}")
-                
-                """
-                # No more necessary
-                # use line.view to avoid copy array,
-                # and using np.clip to limit values
-                val_lim = 32767
-                # limit value in place to avoid copy
-                np.clip(line, -val_lim -1, val_lim, out=line)
-                """
-                
-                out_buf = line # no copy
-                # debug("voici %d, %s" %(len(out_buf), out_buf.dtype))
+        # if buf_lst.size:
+        if chan_count == 0: # no more audio data
+            self._mixing =0
+            # maintaining the audio callback alive
+            return self._ret_buf
+        elif chan_count == 1: # no copy data
+            out_buf = buf_lst[chan_num] # (buf_lst[chan_num] * 32767).astype('int16')
+            # no copy, but very bad sound
+            # out_buf = buf_lst[chan_num].view(self._out_type)
+            # debug("Yes mannn")
+        elif chan_count >= 2:
+            # passing the type of array result to avoid copy with astype letter
+           
+            # avoid saturation, but no copy
+            max_amp = np.max(np.abs(buf_lst))
+            # print(f"voici max: {val_max}")
+            # TODO: find better solution for readjust level after mixing
+            coef = 1/np.sqrt(2)
+            for buf in buf_lst: buf *= coef # temporary
+            line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
+            # readjust the volume
+            # TODO: normalize it
+            max_amp = np.max(line)
+            # line += (1.0 - max_amp)
+            # line += 0.2 # FIXIT
+            # print(f"voici max_amp: {max_amp}, et max_line: {1.0 - max_amp}")
+            
+            """
+            # No more necessary
+            # use line.view to avoid copy array,
+            # and using np.clip to limit values
+            val_lim = 32767
+            # limit value in place to avoid copy
+            np.clip(line, -val_lim -1, val_lim, out=line)
+            """
+            
+            out_buf = line # no copy
+            # debug("voici %d, %s" %(len(out_buf), out_buf.dtype))
 
-            if out_buf.size:
-                # debug("voici: %s" % out_buf)
-                self._mixing =1
-                
-                # avoid copy
-                return (out_buf * self._max_int16).astype(np.int16).tostring()
-                # return out_buf.tostring()
-        
-        else: # buf_lst is empty
+        if out_buf.size:
+            # debug("voici: %s" % out_buf)
+            self._mixing =1
+            
+            # avoid copy
+            return (out_buf * self._max_int16).astype(np.int16).tostring()
+    
+        else: # out_buf  is empty
             self._mixing =0
             # debug("Mixing finished...")
             

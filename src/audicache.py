@@ -17,6 +17,8 @@ class AudiCache(object):
         self._in_type = np.float32
         self._len_buf =0
         self.is_caching = False
+        self.len_cache =0
+        # self.cache_data = []
 
     #-----------------------------------------
     
@@ -25,17 +27,20 @@ class AudiCache(object):
         initialize the data cache
         from AudiCache object
         """
-        if not self._mixer: return
 
+        if not self._mixer: return
         self._nchannels = self._mixer._nchannels
         self._buf_size = self._mixer._buf_size
         self._in_type = self._mixer._in_type
         self._len_buf = self._mixer._len_buf
-        self.cache_data = np.zeros((nb_chan, self._len_buf), dtype=self._in_type)
+        # take too place in memory
+        # self.cache_data = np.zeros((nb_chan, self._len_buf), dtype=self._in_type)
+        self.cache_data = [0] * nb_chan
+        self.len_cache = len(self.cache_data)
 
     #-----------------------------------------
     
-    def preload(self):
+    def preload(self, nb_chan=16):
         """
         preload data
         from AudiCache object
@@ -45,7 +50,7 @@ class AudiCache(object):
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
         self.init_cache(nb_chan)
-        if not self.cache_data.size: return False
+        if not self.cache_data: return False
         if not chan_lst:
             print("No data is caching...")
             return False
