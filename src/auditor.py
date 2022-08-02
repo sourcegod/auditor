@@ -60,34 +60,38 @@ class MainApp(object):
             elif key == 'f':
                 # chan1.setmute(1, 0)
                 (chan, snd) = self.mixer.get_chan_sound(0, 0)
-                self.mixer.play_channel(0, 0)
+                if snd: self.mixer.play_channel(0, 0)
             elif key == 'g':
                 (chan, snd) = self.mixer.get_chan_sound(1, 1)
-                snd.set_loop_mode(1)
-                self.mixer.play_channel(1, 1, loops=-1)
+                if snd: 
+                    snd.set_loop_mode(1)
+                    self.mixer.play_channel(1, 1, loops=-1)
             elif key == 'h':
                 (chan, snd) = self.mixer.get_chan_sound(3, 3)
-                snd.reverse()
-                snd.set_loop_mode(1)
-                chan.play(snd, loops=-1)
+                if snd: 
+                    snd.reverse()
+                    snd.set_loop_mode(1)
+                    if chan: chan.play(snd, loops=-1)
             elif key == 'j':
                 # test different sound on same channel
                 (chan, snd) = self.mixer.get_chan_sound(2, 4)
-                chan.play(snd, 0)
+                if chan: chan.play(snd, 0)
             elif key == 'k':
                 # stream test
                 # snd4.set_loop_mode(1)
                 (chan, snd) = self.mixer.get_chan_sound(4, 4)
-                snd.set_loop_points(5, 10, 1)
-                chan.play(snd, -1)
+                if snd: 
+                    snd.set_loop_points(5, 10, 1)
+                    if chan: chan.play(snd, -1)
             elif key == 'l':
                 (chan, snd) = self.mixer.get_chan_sound(5, 5)
-                snd.set_loop_mode(1)
+                if snd: 
+                    snd.set_loop_mode(1)
                 loops =-1 # infinitely
-                chan.play(snd, loops)
+                if chan: chan.play(snd, loops)
             elif key == 'm':
                 (chan, snd) = self.mixer.get_chan_sound(6, 6)
-                chan.play(snd)
+                if chan: chan.play(snd)
             elif key == 'x':
                 # aud.mixer.play()
                 pass

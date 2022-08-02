@@ -144,6 +144,7 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
+        # print("len channels: ", len(self.mixer._chan_lst))
         fname1 = path.join(_mediadir, "drumloop.wav")
         fname2 = path.join(_mediadir, "funky.wav")
         fname3 = path.join(_mediadir, "latin.wav")
@@ -175,6 +176,7 @@ class InterfaceApp(object):
             self.mixer.create_channel(i)
             # chan1.set_volume(16)
             # chan1.set_panning(127, 0)
+            pass
 
     #-----------------------------------------
 
@@ -218,6 +220,12 @@ class InterfaceApp(object):
             if instru.key == 40: # no velocity
                 instru.m_vel =-1
                 instru.chan.set_vel(-1)
+            if instru.key == 41:
+                instru.snd.set_loop_mode(1)
+                instru.chan_mode =0
+                instru.loop_mode =1
+                instru.loop_count =-1
+
 
     #-----------------------------------------
     

@@ -24,6 +24,203 @@ def debug(msg="", title="", bell=True):
     
 #------------------------------------------------------------------------------
 
+class AudiRoll(object):
+    """ object for rolling item derived from list """
+    def __init__(self, rolling=True):
+        self._list = []
+        self._cur =0
+        self.id =0
+        self.type = ""
+        self.name = ""
+        self.rolling = rolling
+
+    #-----------------------------------------
+    
+    def get_list(self):
+        """
+        convenient function for getting the list object
+        from CAudiList object
+        """
+
+        return self._list
+
+    #-----------------------------------------
+
+    def set_list(self, lst):
+        self._list = lst
+
+    #-----------------------------------------
+
+    def add(self, *args):
+        self._list.extend(args)
+
+    #-----------------------------------------
+
+    def get(self):
+        try:
+            return self._list[self._cur]
+        except IndexError:
+            return
+        
+    #-----------------------------------------
+
+    def set(self, val):
+        if val >= 0 and val < len(self):
+            try:
+                self._cur = val
+                return self._list[self._cur]
+            except IndexError:
+                return
+        
+        return
+    
+#-----------------------------------------
+    
+    def item_index(self):
+        return self._cur
+
+    #-----------------------------------------
+
+    def get_prev(self):
+        # get prev item in the list
+        cur = self._cur
+        if cur == 0 and self.rolling:
+            cur = len(self._list) -1
+        elif cur > 0:
+            cur -= 1
+        try:
+            return self._list[cur]
+        except IndexError:
+            return
+        
+        return
+
+    #-----------------------------------------
+
+    def prev(self):
+        # set prev item in the list
+        if self._cur ==0 and self.rolling:
+            self._cur = len(self._list) -1
+        elif self._cur > 0:
+            self._cur -= 1
+        try:
+            return self._list[self._cur]
+        except IndexError:
+            return
+
+    #-----------------------------------------
+
+    def get_next(self):
+        # get next item in the list
+        cur = self._cur
+        if cur == len(self._list) -1 and self.rolling:
+            cur =0
+        elif cur < len(self._list) -1:
+            cur += 1
+        try:
+            return self._list[cur]
+        except IndexError:
+            return
+        
+    #-----------------------------------------
+
+    def next(self):
+        # set next item in the list
+        if self._cur == len(self._list) -1 and self.rolling:
+            self._cur =0
+        elif self._cur < len(self._list) -1:
+            self._cur += 1
+        try:
+            return self._list[self._cur]
+        except IndexError:
+            return
+
+    #-----------------------------------------
+
+    def get_first(self):
+        """ 
+        get first item in the list
+        from CAudiList object
+        """
+        if self._list:
+            return self._list[0]
+
+        return 
+
+    #-----------------------------------------
+
+    def first(self):
+        """ set first item in the list
+        """
+        if self._list:
+            self._cur =0
+            return self._list[self._cur]
+
+        return
+
+    #-----------------------------------------
+
+    def get_last(self):
+        """ get last item in the list
+        """
+        if self._list:
+            cur = len(self._list) -1
+            try:
+                return self._list[cur]
+            except IndexError:
+                return
+        
+        return
+
+    #-----------------------------------------
+
+    def last(self):
+        """ set last item in the list
+        """
+        if self._list:
+            self._cur = len(self._list) -1
+            try:
+                return self._list[self._cur]
+            except IndexError:
+                return
+        
+        return
+
+    #-----------------------------------------
+
+    def is_first(self):
+        """ is first item in the list
+        """
+        
+        return self._cur == 0
+
+    #-----------------------------------------
+
+    def is_last(self):
+        """ is last item in the list
+        """
+
+        return self._cur == len(self._list) -1
+
+    #-----------------------------------------
+
+    def max(self):
+        if self._list:
+            return max(self._list)
+
+        return
+
+    #-----------------------------------------
+
+    def min(self):
+        if self._list:
+            return min(self._list)
+
+        return
+
+    #-----------------------------------------
+
+#========================================
 
 class AudiMixer(object):
     """ Mixer object to manage channels """
@@ -48,6 +245,9 @@ class AudiMixer(object):
         # to maintaining the audio callback alive
         self._ret_buf = None
         self.cacher = None
+        self._roll_lst = AudiRoll(rolling=True)
+        self._roll_lst.set_list(range(8))
+        # print("voici rool: ", self._roll_lst)
 
     #-----------------------------------------
 
@@ -82,7 +282,7 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        buf_lst = np.zeros((16, self._nchannels * self._buf_size), dtype=np.float32)
+        buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
         buf1 = np.array([], dtype=np.float32)
         out_buf = np.array([], dtype=self._out_type)
         # debug("je pass ici")
@@ -91,6 +291,7 @@ class AudiMixer(object):
         self._mixing =0
         cacher = self.cacher
         caching = False
+        self._roll_lst.last()
 
 
         for (i, chan) in enumerate(self._chan_lst):
@@ -162,8 +363,10 @@ class AudiMixer(object):
                     # FIX: we cannot modify array that is in readonly, so we copy
                     # to avoid saturation when summing, we divide the amplitude
                     # buf1 = buf1 / 2
-                    buf_lst[i] = buf1
-                    chan_num = i
+                    num = self._roll_lst.next()
+                    # print(f"voici num: {num}")
+                    buf_lst[num] = buf1
+                    chan_num = num
                     chan_count +=1
                     # debug("voici i: %d et shape: %s" %(i, buf1.shape))
         
@@ -219,7 +422,7 @@ class AudiMixer(object):
             self._mixing =0
             # debug("Mixing finished...")
             
-            return None
+            return self._ret_buf
 
     #-----------------------------------------
               
@@ -270,7 +473,12 @@ class AudiMixer(object):
     #-----------------------------------------
 
     def create_channel(self, id):
-        # create channel object
+        """
+        create channel object
+        from AudiMixer object
+        """
+
+        # print("je pass par la id: ", id)
         chan = auchan.AudiChannel(id)
         if self.audio_driver:
             chan.set_mix_callback(self.audio_driver)
@@ -445,6 +653,13 @@ class AudiMixer(object):
 #========================================
 
 if __name__ == "__main__":
+    lst = AudiRoll()
+    lst.set_list([1,2,3])
+    val = lst.last()
+    print(f"voici last val: {val}") 
+    for i in range(6):
+        print(f"voici next val: {lst.next()}") 
+
     app = AudiMixer()
     app.init()
     input("It's OK...")

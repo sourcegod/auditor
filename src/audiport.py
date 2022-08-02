@@ -372,7 +372,7 @@ class PortAudioDriver(BaseDriver):
         elif self._mixer:
             data =  self._mixer.get_mix_data()
         if data is None:
-            debug(data)
+            debug("Data is None", data)
         else:
             # debug(f"Data Len: {len(data)}") 
             pass
