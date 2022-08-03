@@ -49,6 +49,7 @@ class AudiCache(object):
         if not self._mixer: return False
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
+        nb_buf =1 # number for each sound buffer to preload
         self.init_cache(nb_chan)
         if not self.cache_data: return False
         if not chan_lst:
@@ -60,7 +61,7 @@ class AudiCache(object):
                     snd = self._mixer.get_sound_by_id(i)
                     if not snd: continue
                     else:
-                        self.cache_data[i] = snd.read_data(self._buf_size)
+                        self.cache_data[i] = snd.read_data(nb_buf * self._buf_size)
                         self.is_caching = True
                         # print(f"find caching sound on channel {i}")
                 else: break

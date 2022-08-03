@@ -395,8 +395,9 @@ class InterfaceApp(object):
         """
 
         print("Test from InterfaceApp object")
-        self.start_midi_thread()
-
+        # test the cache
+        self.mixer.play_cache(1)
+        # self.start_midi_thread()
 
     #-------------------------------------------
 

@@ -134,7 +134,7 @@ class AudiChannel(DspEffect):
 
         # loops -1: infinitly
         # 0: no looping mode
-        if not snd: return
+        if snd is None: return
         self.stop() # stop previus sound
         self._sound = snd
         self._sound.set_loop_count(loops)

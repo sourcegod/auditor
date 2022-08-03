@@ -229,6 +229,7 @@ class AudiMixer(object):
         # self.audio_driver = aup.PortAudioDriver()
         self.audio_driver = audio_driver
         self._playing =0
+        self._curpos =0
         self._sound_lst = [] # list for sound object
         self._chan_lst = [] # list for channel object
         self._thr_audio = None
@@ -249,6 +250,7 @@ class AudiMixer(object):
         self._roll_lst.set_list(range(8))
         # print("voici rool: ", self._roll_lst)
         self._vol_ratio =0.5
+        self.cur_func = None
 
     #-----------------------------------------
 
@@ -271,6 +273,7 @@ class AudiMixer(object):
         # create cache data
         self.cacher = auc.AudiCache(self)
         # self.cacher.init_cache()
+        self.cur_func = self.get_mix_data
 
         # create reserved channel for beep
         self.chan_beep = self.create_channel(1000)
@@ -441,6 +444,27 @@ class AudiMixer(object):
 
     #-----------------------------------------
               
+    def get_raw_data(self, data=None):
+        """
+        returns simple raw data without Sound object
+        from AudiMixer object
+        """
+
+        if self._playing and self._raw_data.size:
+            if self._curpos < len(self._raw_data):
+                # print(f"voici curpos {self._curpos}, et len_data: {len(self._raw_data)}")
+                data = self._raw_data[self._curpos]
+                self._curpos += 1
+                return (data * self._max_int16).astype(np.int16).tostring()
+        
+        self._playing =0
+        self._curpos =0
+        # restore previous Audio Callback function
+        self.cur_func = self.get_mix_data
+        return self._ret_buf
+    
+    #-----------------------------------------
+
     def beep(self, freq=440, lensec=1, loops=-2):
         """ beep square wave through mixer object
         freq: in hertz
@@ -583,6 +607,32 @@ class AudiMixer(object):
 
         if instru is None: return
         instru.chan.stop()
+
+    #-----------------------------------------
+
+    def play_cache(self, snd_num=0, loops=0):
+        """
+        play channel with associated sound
+        from AudiMixer object
+        """
+        
+        caching = self.cacher.is_caching
+        if caching:
+            self.cacher.is_caching = False
+        
+        try:
+            # chan = self._chan_lst[chan_num]
+            data = self.cacher.cache_data[snd_num]
+            self._raw_data = data.reshape(-1, self._len_buf)
+        except IndexError:
+            return
+        # chan.play(snd, loops)
+        self.cur_func = self.get_raw_data
+        self._playing =1
+        
+        self.cacher.is_caching = caching
+        
+        return True
 
     #-----------------------------------------
 

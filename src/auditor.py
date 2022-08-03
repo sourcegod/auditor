@@ -52,7 +52,10 @@ class MainApp(object):
         self.Display(msg)
         while 1:
             key = self.win.getch() # pauses until a key's hit
-            if key < 128:
+            if key >=48 and key <=57:
+                self.mixer.play_cache(key -48)
+                
+            elif key < 128:
                 key = chr(key)
             if key == 'Q':
                 self.iap.close()
@@ -127,7 +130,8 @@ class MainApp(object):
                 (chan, snd) = self.mixer.get_chan_sound(0, 0)
                 chan.setend()
             else:
-                curses.beep()
+                # curses.beep()
+                pass
 
     #-------------------------------------------
 

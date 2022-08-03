@@ -370,7 +370,7 @@ class PortAudioDriver(BaseDriver):
             # debug("Caching here...")
             self._cache_lst = []
         elif self._mixer:
-            data =  self._mixer.get_mix_data()
+            data =  self._mixer.cur_func() # self._mixer.get_mix_data
         if data is None:
             debug("Data is None", data)
         else:
