@@ -248,6 +248,7 @@ class AudiMixer(object):
         self._roll_lst = AudiRoll(rolling=True)
         self._roll_lst.set_list(range(8))
         # print("voici rool: ", self._roll_lst)
+        self._vol_ratio =0.5
 
     #-----------------------------------------
 
@@ -368,8 +369,8 @@ class AudiMixer(object):
                     # buf1 = chan.set_effect(buf1)
                     """
                     
-                    # buf_lst.append(buf1)
-                    # len1 = buf1.size
+                    # avoid saturation
+                    buf1 *= self._vol_ratio
                     if chan.is_vel():
                         chan.process_vel(buf1)
                     
@@ -400,17 +401,15 @@ class AudiMixer(object):
             # debug("Yes mannn")
         elif chan_count >= 2:
             # passing the type of array result to avoid copy with astype letter
-           
             # avoid saturation, but no copy
-            max_amp = np.max(np.abs(buf_lst))
+            # max_amp = np.max(np.abs(buf_lst))
             # print(f"voici max: {val_max}")
             # TODO: find better solution for readjust level after mixing
-            coef = 1/np.sqrt(2)
-            for buf in buf_lst: buf *= coef # temporary
-            line = np.sum(buf_lst, axis=0, dtype=np.float32) # sum each column per line
+            line = np.sum(buf_lst[0:chan_count], axis=0, dtype=np.float32) # sum each column per line
+            # line = sum(buf_lst) # sum each column per line
             # readjust the volume
             # TODO: normalize it
-            max_amp = np.max(line)
+            # max_amp = np.max(line)
             # line += (1.0 - max_amp)
             # line += 0.2 # FIXIT
             # print(f"voici max_amp: {max_amp}, et max_line: {1.0 - max_amp}")
