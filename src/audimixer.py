@@ -27,7 +27,7 @@ def debug(msg="", title="", bell=True):
 class AudiRoll(object):
     """ object for rolling item derived from list """
     def __init__(self, rolling=True):
-        self._list = []
+        self._data = []
         self._cur =0
         self.id =0
         self.type = ""
@@ -42,23 +42,23 @@ class AudiRoll(object):
         from CAudiList object
         """
 
-        return self._list
+        return self._data
 
     #-----------------------------------------
 
     def set_list(self, lst):
-        self._list = lst
+        self._data = lst
 
     #-----------------------------------------
 
     def add(self, *args):
-        self._list.extend(args)
+        self._data.extend(args)
 
     #-----------------------------------------
 
     def get(self):
         try:
-            return self._list[self._cur]
+            return self._data[self._cur]
         except IndexError:
             return
         
@@ -68,7 +68,7 @@ class AudiRoll(object):
         if val >= 0 and val < len(self):
             try:
                 self._cur = val
-                return self._list[self._cur]
+                return self._data[self._cur]
             except IndexError:
                 return
         
@@ -85,11 +85,11 @@ class AudiRoll(object):
         # get prev item in the list
         cur = self._cur
         if cur == 0 and self.rolling:
-            cur = len(self._list) -1
+            cur = len(self._data) -1
         elif cur > 0:
             cur -= 1
         try:
-            return self._list[cur]
+            return self._data[cur]
         except IndexError:
             return
         
@@ -100,11 +100,11 @@ class AudiRoll(object):
     def prev(self):
         # set prev item in the list
         if self._cur ==0 and self.rolling:
-            self._cur = len(self._list) -1
+            self._cur = len(self._data) -1
         elif self._cur > 0:
             self._cur -= 1
         try:
-            return self._list[self._cur]
+            return self._data[self._cur]
         except IndexError:
             return
 
@@ -113,12 +113,12 @@ class AudiRoll(object):
     def get_next(self):
         # get next item in the list
         cur = self._cur
-        if cur == len(self._list) -1 and self.rolling:
+        if cur == len(self._data) -1 and self.rolling:
             cur =0
-        elif cur < len(self._list) -1:
+        elif cur < len(self._data) -1:
             cur += 1
         try:
-            return self._list[cur]
+            return self._data[cur]
         except IndexError:
             return
         
@@ -126,12 +126,12 @@ class AudiRoll(object):
 
     def next(self):
         # set next item in the list
-        if self._cur == len(self._list) -1 and self.rolling:
+        if self._cur == len(self._data) -1 and self.rolling:
             self._cur =0
-        elif self._cur < len(self._list) -1:
+        elif self._cur < len(self._data) -1:
             self._cur += 1
         try:
-            return self._list[self._cur]
+            return self._data[self._cur]
         except IndexError:
             return
 
@@ -142,8 +142,8 @@ class AudiRoll(object):
         get first item in the list
         from CAudiList object
         """
-        if self._list:
-            return self._list[0]
+        if self._data:
+            return self._data[0]
 
         return 
 
@@ -152,9 +152,9 @@ class AudiRoll(object):
     def first(self):
         """ set first item in the list
         """
-        if self._list:
+        if self._data:
             self._cur =0
-            return self._list[self._cur]
+            return self._data[self._cur]
 
         return
 
@@ -163,10 +163,10 @@ class AudiRoll(object):
     def get_last(self):
         """ get last item in the list
         """
-        if self._list:
-            cur = len(self._list) -1
+        if self._data:
+            cur = len(self._data) -1
             try:
-                return self._list[cur]
+                return self._data[cur]
             except IndexError:
                 return
         
@@ -177,10 +177,10 @@ class AudiRoll(object):
     def last(self):
         """ set last item in the list
         """
-        if self._list:
-            self._cur = len(self._list) -1
+        if self._data:
+            self._cur = len(self._data) -1
             try:
-                return self._list[self._cur]
+                return self._data[self._cur]
             except IndexError:
                 return
         
@@ -200,21 +200,21 @@ class AudiRoll(object):
         """ is last item in the list
         """
 
-        return self._cur == len(self._list) -1
+        return self._cur == len(self._data) -1
 
     #-----------------------------------------
 
     def max(self):
-        if self._list:
-            return max(self._list)
+        if self._data:
+            return max(self._data)
 
         return
 
     #-----------------------------------------
 
     def min(self):
-        if self._list:
-            return min(self._list)
+        if self._data:
+            return min(self._data)
 
         return
 
