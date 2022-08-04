@@ -316,16 +316,18 @@ class AudiMixer(object):
                 # """
                 if cacher.is_caching and i < len_cache: 
                     if curpos == 0:
-                        buf1 = np.copy(cacher.cache_data[i])
+                        # buf1 = np.copy(cacher.cache_data[i])
+                        cacher.buf_pos =0
+                        buf1 = np.copy(cacher.get_data(i))
                         snd.set_position(self._buf_size)
                         caching = True
                         print(f"its caching... curpos: {curpos}")
-                    elif curpos >= self._buf_size and\
-                            curpos < self._len_buf:
-                        buf1 = np.copy(cacher.cache_data[i])
+                    
+                    elif cacher.buf_pos < cacher.nb_buf:
+                        buf1 = np.copy(cacher.get_data(i))
                         snd.set_position(curpos + self._buf_size)
                         caching = True
-                        print(f"its caching... curpos: {curpos}")
+                        # print(f"its caching... buf_pos: {cacher.buf_pos}, curpos: {curpos}")
                 # 
                 # """
                 
@@ -454,7 +456,8 @@ class AudiMixer(object):
             if self._curpos < len(self._raw_data):
                 # print(f"voici curpos {self._curpos}, et len_data: {len(self._raw_data)}")
                 data = self._raw_data[self._curpos]
-                self._curpos += 1
+                self._curpos +=1
+                
                 return (data * self._max_int16).astype(np.int16).tostring()
         
         self._playing =0

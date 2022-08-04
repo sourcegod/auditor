@@ -54,6 +54,7 @@ class MainApp(object):
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
                 self.mixer.play_cache(key -48)
+                continue
                 
             elif key < 128:
                 key = chr(key)
@@ -130,7 +131,7 @@ class MainApp(object):
                 (chan, snd) = self.mixer.get_chan_sound(0, 0)
                 chan.setend()
             else:
-                # curses.beep()
+                curses.beep()
                 pass
 
     #-------------------------------------------

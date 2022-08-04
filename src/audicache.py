@@ -18,7 +18,10 @@ class AudiCache(object):
         self._len_buf =0
         self.is_caching = False
         self.len_cache =0
-        # self.cache_data = []
+        self.cache_data = []
+        self.nb_buf =0 # number of buffer by each sound
+        self.buf_pos =0
+        self.row =0
 
     #-----------------------------------------
     
@@ -35,8 +38,8 @@ class AudiCache(object):
         self._len_buf = self._mixer._len_buf
         # take too place in memory
         # self.cache_data = np.zeros((nb_chan, self._len_buf), dtype=self._in_type)
-        self.cache_data = [0] * nb_chan
-        self.len_cache = len(self.cache_data)
+        self.cache_data = [] # [0] * nb_chan
+        # self.len_cache = len(self.cache_data)
 
     #-----------------------------------------
     
@@ -49,22 +52,34 @@ class AudiCache(object):
         if not self._mixer: return False
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
-        nb_buf =1 # number for each sound buffer to preload
-        self.init_cache(nb_chan)
-        if not self.cache_data: return False
+        self.nb_buf =44 # number of buffer for each sound to preload
+        nb_cache = nb_chan
+        self.init_cache(nb_cache)
+        # if not self.cache_data: return False
+        self._view_data = []
         if not chan_lst:
             print("No data is caching...")
             return False
         try:
             for (i, chan) in enumerate(chan_lst):
-                if i < len(self.cache_data):
+                if i < nb_cache:
                     snd = self._mixer.get_sound_by_id(i)
                     if not snd: continue
                     else:
-                        self.cache_data[i] = snd.read_data(nb_buf * self._buf_size)
+                        nb_buf = self.nb_buf * self._buf_size
+                        buf1 = snd.read_data(nb_buf)
+                        if len(buf1) < self.nb_buf * self._len_buf:
+                            buf1.resize(self.nb_buf * self._len_buf)
+                        self.cache_data.append(buf1)
+                        buf = self.cache_data[-1]
+                        self._view_data.append(buf.reshape(-1, self._len_buf))
+
                         self.is_caching = True
                         # print(f"find caching sound on channel {i}")
                 else: break
+            self.len_cache = len(self.cache_data)
+            # print(f"voici shape view_data: {self._view_data[0].shape}")
+            # print("view0 is cache_data 0? ", np.shares_memory(self._view_data[0], self.cache_data[0]))
         except IndexError:
             self.is_caching = False
             return False
@@ -75,6 +90,25 @@ class AudiCache(object):
         return True
 
     #-----------------------------------------
+
+    def get_data(self, num=0):
+        """
+        returns simple raw data without Sound object
+        from AudiCache object
+        """
+
+        data = None
+        try:
+            # print(f"voici curpos {self._curpos}, et len_data: {len(self._raw_data)}")
+            data = self._view_data[num][self.buf_pos]
+            self.buf_pos +=1
+        except IndexError:
+            return
+            
+        return data
+    
+    #-----------------------------------------
+
 
 #========================================
 
