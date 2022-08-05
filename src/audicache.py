@@ -7,6 +7,17 @@
 """
 import numpy as np
 
+class BufferObj(object):
+    """ container for cache buffer """
+    def __init__(self):
+        self.pos =0
+        self.buf = None
+
+    #-----------------------------------------
+
+#========================================
+
+
 class AudiCache(object):
     """ Audio Cache Manager """
     def __init__(self, mixer=None):
@@ -53,7 +64,7 @@ class AudiCache(object):
         if not self._mixer: return False
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
-        self.nb_buf =44 # number of buffer for each sound to preload
+        self.nb_buf =4 # number of buffer for each sound to preload
         nb_cache = nb_chan
         self.init_cache(nb_cache)
         self.nb_frames = self.nb_buf * self._buf_size
@@ -74,7 +85,9 @@ class AudiCache(object):
                             buf1.resize(nb_samples)
                         self.cache_data.append(buf1)
                         buf = self.cache_data[-1]
-                        self._view_data.append(buf.reshape(-1, self._len_buf))
+                        bufobj = BufferObj()
+                        bufobj.buf = buf.reshape(-1, self._len_buf)
+                        self._view_data.append(bufobj)
 
                         self.is_caching = True
                         # print(f"find caching sound on channel {i}")
@@ -102,8 +115,10 @@ class AudiCache(object):
         data = None
         try:
             # print(f"voici curpos {self._curpos}, et len_data: {len(self._raw_data)}")
-            data = self._view_data[num][self.buf_pos]
-            self.buf_pos +=1
+            bufobj = self._view_data[num]
+            # print(f"voici num: {num}, pos: {bufobj.pos}")
+            data = bufobj.buf[bufobj.pos]
+            bufobj.pos +=1 # (bufobj.pos +1) % self.nb_buf
         except IndexError:
             return
             
@@ -111,6 +126,31 @@ class AudiCache(object):
     
     #-----------------------------------------
 
+    def get_pos(self, num):
+        """ 
+        returns the buffer position in the cache
+        from AudiCache object
+        """
+        
+        try:
+            return self._view_data[num].pos
+        except IndexError:
+            preturn -1
+
+    #-----------------------------------------
+
+    def set_pos(self, num, pos):
+        """ 
+        set the buffer position in the cache
+        from AudiCache object
+        """
+        
+        try:
+            self._view_data[num].pos = pos
+        except IndexError:
+            pass
+
+    #-----------------------------------------
 
 #========================================
 

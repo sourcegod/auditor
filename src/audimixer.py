@@ -6,7 +6,7 @@
     Author: Coolbrother
 """
 
-import time
+import sys, time
 import numpy as np
 # import audisample as ausam
 import audisample2 as ausam
@@ -316,15 +316,16 @@ class AudiMixer(object):
                 
                 # """
                 if cacher.is_caching and i < len_cache: 
+                    cache_pos = cacher.get_pos(i)
                     if curpos == 0:
-                        # buf1 = np.copy(cacher.cache_data[i])
-                        cacher.buf_pos =0
+                        print("\a", file=sys.stderr)
+                        cacher.set_pos(i, 0)
                         buf1 = np.copy(cacher.get_data(i))
                         snd.set_position(cacher.nb_frames)
                         caching = True
                         # print(f"its caching... curpos: {curpos}")
                     
-                    elif cacher.buf_pos < cacher.nb_buf:
+                    elif cache_pos < cacher.nb_buf:
                         buf1 = np.copy(cacher.get_data(i))
                         # snd.set_position(curpos + self._buf_size)
                         caching = True
@@ -453,7 +454,8 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        self.cacher.buf_pos =0
+        # self.cacher.buf_pos =0
+        self.cacher.set_pos(snd_num, 0)
         self._snd_num = snd_num
         self._playing = playing
         self.cur_func = self.gen_cache_data
