@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 """
-    File: AudiPlayer.py:
+    File: interfaceapp.py:
     See changelog
     Date: Sun, 17/07/2022
     Author: Coolbrother
@@ -10,6 +10,7 @@
 import os, sys
 from os import path
 import audimixer as aumix
+import audiplayer as aupl
 import midutils as mid
 #------------------------------------------------------------------------------
 
@@ -46,155 +47,6 @@ class InstruObj(object):
 
 #========================================
 
-class AudiPlayer(object):
-    """ 
-    Auditor manager
-    from AudiPlayer object
-    """
-    def __init__(self, audio_driver=None):
-        self.audio_driver = audio_driver
-        self.mixer = aumix.AudiMixer(audio_driver)
-        self.mixer.init()
-        self._chan_lst = []
-        self._snd_lst = []
-
-    #-----------------------------------------
-
-    def init(self):
-        """ 
-        init all things for auditor
-        from AudiPlayer object
-        """
-
-        if self.mixer:
-            self._chan_lst = self.mixer.get_channels()
-            self._snd_lst = self.mixer.get_sounds()
-        
-        """
-        if self.mixer:
-            self.mixer.init()
-            # self._audio_driver.init_audio()
-        """
-    
-    #--------------------------------------
-     
-    def __del__(self):
-        self.close()
-
-    #-----------------------------------------
-
-    def close(self):
-        """ 
-        close the mixer
-        from AudiPlayer object
-        """
-        
-        if self.mixer:
-            self.mixer.close()
-            self.mixer = None
-
-    #-----------------------------------------
-               
-    def play_all(self):
-        """
-        play all channels
-        from AudiMixer object
-        """
-        
-        for i, chan in enumerate(self._chan_lst):
-            snd = self._snd_lst[i]
-            chan.play(snd)
-
-    #-----------------------------------------
-
-    def pause(self):
-        self._playing =0
-
-    #-----------------------------------------
-        
-    def stop_all(self):
-        """
-        stop all channels
-        from AudiMixer object
-        """
-
-        self._playing =0
-        for chan in self._chan_lst:
-            chan.stop()
-
-    #-----------------------------------------
- 
-    def play_channel(self, chan_num, snd_num=0, loops=0):
-        """
-        play channel with associated sound
-        from AudiMixer object
-        """
-        
-        try:
-            chan = self._chan_lst[chan_num]
-            snd = self._snd_lst[snd_num]
-        except IndexError:
-            print("Index Error...")
-            return
-        chan.play(snd, loops)
-
-        return True
-
-    #-----------------------------------------
-
-    def stop_channel(self, chan_num):
-        """
-        channel with associated sound
-        from AudiMixer object
-        """
-        
-        try:
-            self._chan_lst[chan_num].stop()
-        except IndexError:
-            return
-
-        return True
-
-    #-----------------------------------------
-
-    def play_instru(self, instru=None):
-        """
-        temporary function to play instrument
-        from AudiMixer object
-        """
-
-        if instru is None: return
-        instru.chan.play(instru.snd, instru.loop_count)
-
-    #-----------------------------------------
-
-    def stop_instru(self, instru=None):
-        """
-        temporary function to stop instrument
-        from AudiMixer object
-        """
-
-        if instru is None: return
-        instru.chan.stop()
-
-    #-----------------------------------------
-
-    def play_cache(self, snd_num=0, loops=0):
-        """
-        play raw data from the Cache
-        from AudiMixer object
-        """
-
-        self._playing =1
-        self.mixer.set_cache_data(snd_num, loops, playing=self._playing)
-
-        
-        return True
-        
-    #-----------------------------------------
-
-#========================================
-
 class InterfaceApp(object):
     """ Interface app manager """
     def __init__(self, audio_driver=None, output_index=None):
@@ -218,7 +70,7 @@ class InterfaceApp(object):
         if self.audio_driver:
             self.audio_driver.set_output_device_index(output_index)
             self.audio_driver.parent = self
-        self.player = AudiPlayer(audio_driver=self.audio_driver)
+        self.player = aupl.AudiPlayer(audio_driver=self.audio_driver)
         self.mixer = self.player.mixer
         if self.audio_driver:
             self.gen_channels()
