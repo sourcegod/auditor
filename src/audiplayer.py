@@ -158,4 +158,6 @@ class AudiPlayer(object):
 
 
 if __name__ == "__main__":
+    app = AudiPlayer()
+    app.init()
     input("It's Ok")
