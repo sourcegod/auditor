@@ -251,6 +251,7 @@ class AudiMixer(object):
         # print("voici rool: ", self._roll_lst)
         self._vol_ratio =0.5
         self.cur_func = None
+        self._snd_num =0
 
     #-----------------------------------------
 
@@ -321,7 +322,7 @@ class AudiMixer(object):
                         buf1 = np.copy(cacher.get_data(i))
                         snd.set_position(cacher.nb_frames)
                         caching = True
-                        print(f"its caching... curpos: {curpos}")
+                        # print(f"its caching... curpos: {curpos}")
                     
                     elif cacher.buf_pos < cacher.nb_buf:
                         buf1 = np.copy(cacher.get_data(i))
@@ -452,16 +453,12 @@ class AudiMixer(object):
         from AudiMixer object
         """
 
-        if self._playing and self._raw_data.size:
-            if self._curpos < len(self._raw_data):
-                # print(f"voici curpos {self._curpos}, et len_data: {len(self._raw_data)}")
-                data = self._raw_data[self._curpos]
-                self._curpos +=1
-                
+        if self._playing:
+            data = self.cacher.get_data(self._snd_num)
+            if data is not None:
                 return (data * self._max_int16).astype(np.int16).tostring()
         
         self._playing =0
-        self._curpos =0
         # restore previous Audio Callback function
         self.cur_func = self.get_mix_data
         return self._ret_buf
@@ -619,21 +616,11 @@ class AudiMixer(object):
         from AudiMixer object
         """
         
-        caching = self.cacher.is_caching
-        if caching:
-            self.cacher.is_caching = False
-        
-        try:
-            # chan = self._chan_lst[chan_num]
-            data = self.cacher.cache_data[snd_num]
-            self._raw_data = data.reshape(-1, self._len_buf)
-        except IndexError:
-            return
-        # chan.play(snd, loops)
-        self.cur_func = self.get_raw_data
+        self.cacher.buf_pos =0
+        # chan = self._chan_lst[chan_num]
+        self._snd_num = snd_num
         self._playing =1
-        
-        self.cacher.is_caching = caching
+        self.cur_func = self.get_raw_data
         
         return True
 
