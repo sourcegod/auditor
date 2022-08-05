@@ -319,13 +319,13 @@ class AudiMixer(object):
                         # buf1 = np.copy(cacher.cache_data[i])
                         cacher.buf_pos =0
                         buf1 = np.copy(cacher.get_data(i))
-                        snd.set_position(self._buf_size)
+                        snd.set_position(cacher.nb_frames)
                         caching = True
                         print(f"its caching... curpos: {curpos}")
                     
                     elif cacher.buf_pos < cacher.nb_buf:
                         buf1 = np.copy(cacher.get_data(i))
-                        snd.set_position(curpos + self._buf_size)
+                        # snd.set_position(curpos + self._buf_size)
                         caching = True
                         # print(f"its caching... buf_pos: {cacher.buf_pos}, curpos: {curpos}")
                 # 

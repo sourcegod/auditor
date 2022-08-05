@@ -22,6 +22,7 @@ class AudiCache(object):
         self.nb_buf =0 # number of buffer by each sound
         self.buf_pos =0
         self.row =0
+        self.nb_frames =0
 
     #-----------------------------------------
     
@@ -52,9 +53,10 @@ class AudiCache(object):
         if not self._mixer: return False
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
-        self.nb_buf =44 # number of buffer for each sound to preload
+        self.nb_buf =4 # number of buffer for each sound to preload
         nb_cache = nb_chan
         self.init_cache(nb_cache)
+        self.nb_frames = self.nb_buf * self._buf_size
         # if not self.cache_data: return False
         self._view_data = []
         if not chan_lst:
@@ -66,10 +68,10 @@ class AudiCache(object):
                     snd = self._mixer.get_sound_by_id(i)
                     if not snd: continue
                     else:
-                        nb_buf = self.nb_buf * self._buf_size
-                        buf1 = snd.read_data(nb_buf)
-                        if len(buf1) < self.nb_buf * self._len_buf:
-                            buf1.resize(self.nb_buf * self._len_buf)
+                        buf1 = snd.read_data(self.nb_frames)
+                        nb_samples = self.nb_buf * self._len_buf
+                        if len(buf1) < nb_samples:
+                            buf1.resize(nb_samples)
                         self.cache_data.append(buf1)
                         buf = self.cache_data[-1]
                         self._view_data.append(buf.reshape(-1, self._len_buf))
