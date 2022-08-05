@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 """
-    File: AudiMan.py:
+    File: AudiPlayer.py:
     See changelog
     Date: Sun, 17/07/2022
     Author: Coolbrother
@@ -46,10 +46,10 @@ class InstruObj(object):
 
 #========================================
 
-class AudiMan(object):
+class AudiPlayer(object):
     """ 
     Auditor manager
-    from AudiMan object
+    from AudiPlayer object
     """
     def __init__(self, audio_driver=None):
         self.audio_driver = audio_driver
@@ -61,7 +61,7 @@ class AudiMan(object):
     def init(self):
         """ 
         init all things for auditor
-        from AudiMan object
+        from AudiPlayer object
         """
 
         """
@@ -80,7 +80,7 @@ class AudiMan(object):
     def close(self):
         """ 
         close the mixer
-        from AudiMan object
+        from AudiPlayer object
         """
         
         if self.mixer:
@@ -99,8 +99,8 @@ class InterfaceApp(object):
             self.audio_driver.set_output_device_index(output_index)
             self.audio_driver.parent = self
             
-        self.aud = AudiMan(audio_driver=self.audio_driver)
-        self.mixer = self.aud.mixer
+        self.player = AudiPlayer(audio_driver=self.audio_driver)
+        self.mixer = self.player.mixer
         self._thr = None
         self._midi_in = None
         self._midi_out = None
@@ -133,8 +133,8 @@ class InterfaceApp(object):
 
         if self.audio_driver:
             self.stop_midi_thread()
-            if self.aud:
-                self.aud.close()
+            if self.player:
+                self.player.close()
 
     #-----------------------------------------
      
