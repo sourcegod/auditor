@@ -19,10 +19,8 @@ curses.initscr()
 class MainApp(object):
     def __init__(self, audio_driver=None, output_index=None):
         self.win = None
-        self.iap = intapp.InterfaceApp(audio_driver, output_index)
-        # self.iap.init_app(audio_driver, output_index)
-        self.mixer = self.iap.mixer
-
+        self.iap = None
+        self.mixer = None
 
     #-------------------------------------------
 
@@ -44,10 +42,12 @@ class MainApp(object):
 
     #-------------------------------------------
 
-    def main(self, stdscr):
+    def main(self, stdscr, audio_driver=None, output_index=None):
         # stdscr is passing by curses.wrapper function
         self.win = stdscr
-        self.iap.init_app()
+        self.iap = intapp.InterfaceApp()
+        self.iap.init_app(audio_driver, output_index)
+        self.mixer = self.iap.mixer
         msg = "Press a key..."
         self.Display(msg)
         while 1:
@@ -141,7 +141,8 @@ class MainApp(object):
 if __name__ == "__main__":
     audio_driver = aup.PortAudioDriver()
     output_index = 6 # None for default output port
-    app = MainApp(audio_driver=audio_driver, output_index=output_index)
-    curses.wrapper(app.main)
+    app = MainApp()
+    # app.init_app(audio_driver=audio_driver, output_index=output_index)
+    curses.wrapper(app.main, audio_driver=audio_driver, output_index=output_index)
 
 #-------------------------------------------

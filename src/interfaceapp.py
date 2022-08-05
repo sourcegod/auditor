@@ -94,13 +94,9 @@ class AudiPlayer(object):
 class InterfaceApp(object):
     """ Interface app manager """
     def __init__(self, audio_driver=None, output_index=None):
-        self.audio_driver = audio_driver # aup.PortAudioDriver()
-        if self.audio_driver:
-            self.audio_driver.set_output_device_index(output_index)
-            self.audio_driver.parent = self
-            
-        self.player = AudiPlayer(audio_driver=self.audio_driver)
-        self.mixer = self.player.mixer
+        self.audio_driver = None 
+        self.player = None
+        self.mixer = None
         self._thr = None
         self._midi_in = None
         self._midi_out = None
@@ -114,6 +110,12 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
+        self.audio_driver = audio_driver # aup.PortAudioDriver()
+        if self.audio_driver:
+            self.audio_driver.set_output_device_index(output_index)
+            self.audio_driver.parent = self
+        self.player = AudiPlayer(audio_driver=self.audio_driver)
+        self.mixer = self.player.mixer
         if self.audio_driver:
             self.gen_channels()
             self.gen_instruments()
