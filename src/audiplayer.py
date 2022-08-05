@@ -59,7 +59,7 @@ class AudiPlayer(object):
     def play_all(self):
         """
         play all channels
-        from AudiMixer object
+        from AudiPlayer object
         """
         
         for i, chan in enumerate(self._chan_lst):
@@ -76,7 +76,7 @@ class AudiPlayer(object):
     def stop_all(self):
         """
         stop all channels
-        from AudiMixer object
+        from AudiPlayer object
         """
 
         self._playing =0
@@ -88,7 +88,7 @@ class AudiPlayer(object):
     def play_channel(self, chan_num, snd_num=0, loops=0):
         """
         play channel with associated sound
-        from AudiMixer object
+        from AudiPlayer object
         """
         
         try:
@@ -106,7 +106,7 @@ class AudiPlayer(object):
     def stop_channel(self, chan_num):
         """
         channel with associated sound
-        from AudiMixer object
+        from AudiPlayer object
         """
         
         try:
@@ -121,7 +121,7 @@ class AudiPlayer(object):
     def play_instru(self, instru=None):
         """
         temporary function to play instrument
-        from AudiMixer object
+        from AudiPlayer object
         """
 
         if instru is None: return
@@ -132,7 +132,7 @@ class AudiPlayer(object):
     def stop_instru(self, instru=None):
         """
         temporary function to stop instrument
-        from AudiMixer object
+        from AudiPlayer object
         """
 
         if instru is None: return
@@ -143,7 +143,7 @@ class AudiPlayer(object):
     def play_cache(self, snd_num=0, loops=0):
         """
         play raw data from the Cache
-        from AudiMixer object
+        from AudiPlayer object
         """
 
         self._playing =1
