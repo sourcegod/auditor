@@ -48,12 +48,13 @@ class MainApp(object):
         self.iap = intapp.InterfaceApp()
         self.iap.init_app(audio_driver, output_index)
         self.mixer = self.iap.mixer
+        self.player = self.iap.player
         msg = "Press a key..."
         self.Display(msg)
         while 1:
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
-                self.mixer.play_cache(key -48)
+                self.player.play_cache(key -48)
                 continue
                 
             elif key < 128:
@@ -64,12 +65,12 @@ class MainApp(object):
             elif key == 'f':
                 # chan1.setmute(1, 0)
                 (chan, snd) = self.mixer.get_chan_sound(0, 0)
-                if snd: self.mixer.play_channel(0, 0)
+                if snd: self.player.play_channel(0, 0)
             elif key == 'g':
                 (chan, snd) = self.mixer.get_chan_sound(1, 1)
                 if snd: 
                     snd.set_loop_mode(1)
-                    self.mixer.play_channel(1, 1, loops=-1)
+                    self.player.play_channel(1, 1, loops=-1)
             elif key == 'h':
                 (chan, snd) = self.mixer.get_chan_sound(3, 3)
                 if snd: 
@@ -103,7 +104,7 @@ class MainApp(object):
                 self.mixer.pause()
             elif key == 'v':
                 # stop all channels
-                self.mixer.stop_all()
+                self.player.stop_all()
             elif key == 'V':
                 # stop the audio engine
                 self.iap.stop_audio_engine()
