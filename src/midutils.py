@@ -22,6 +22,8 @@ _note_lst = []
 _freq_lst = []
 _input_names = []
 _output_names = []
+_midi_in = _midi_out = None
+_midi_running = False
 
 def limit_value(val, min_val=0, max_val=127):
     if val < min_val: return min_val
@@ -118,7 +120,7 @@ def open_input(port=0):
         print("Error: Midi Port {} is not available".format(port))
     
     if portname:
-        print("Found input name: ",portname)
+        print("Found Midi Input name: ",portname)
         midi_in = mido.open_input(portname)
         
     return midi_in
@@ -136,7 +138,7 @@ def open_output(port=0):
     output_names = mido.get_output_names()
     try:
         port_name = output_names[port]
-        print("Found output name: ",port_name)
+        print("Found Midi Output name: ",port_name)
         midi_out = mido.open_output(port_name)
     except IndexError:
         print("Error opening midi output Port {}".format(port))
@@ -227,7 +229,81 @@ def print_output_names():
     print("---------------------")
 
 #-------------------------------------------
+def _midi_handler(msg, inport=0, outport=0, printing=False):
+    """ 
+    Handling midi messages 
+    """
+    
 
+    if msg:
+        # print("\a") # beep
+        m_type = msg.type
+        if m_type in ['note_on', 'note_off']:
+            m_note = msg.note
+            m_vel = msg.velocity
+            # Note off
+            if m_type == "note_on" and m_vel == 0:
+                m_type = "note_off"
+                # play_notes(m_type, m_note, m_vel)
+                if printing:
+                    print("Midi_in Message: ")
+                    print(f"Note_off, Midi Number: {m_note}, Name: {mid2note(m_note)}")
+                    print(f"Details: {msg}")
+            # Note on
+            elif m_type == "note_on" and m_vel >0:
+                # play_notes(m_type, m_note, m_vel)
+                pass
+                if printing:
+                    print(f"Note_on, Midi Number: {m_note}, Name: {mid2note(m_note)}")
+                    freq = mid2freq(m_note)
+                    print(f"Freq: {freq:.2f}")
+                    print(f"Details: {msg}")
+        else:# others messages
+            if printing:
+                print("Unknown message")
+                print(f"Details: {msg}")
+        if  _midi_out:
+            _midi_out.send(msg)
+            if printing: 
+                print("Midi_out message.")
+        # beep
+        if printing: 
+            print("\a")
+    # time.sleep(0.1)
+
+#-------------------------------------------
+
+def start_midi_thread(inport=0, outport=0, func=None):
+    """
+    Attach callback function to the Midi port Callback
+    """
+    global _midi_in, _midi_out, _midi_running
+    _midi_in = open_input(inport)
+    # func = _midi_handler
+    _midi_in.callback = func
+    _midi_out = open_output(outport)
+    _midi_running = True
+    
+    return (_midi_in, _midi_out)
+#-------------------------------------------
+
+def stop_midi_thread():
+    """
+    Stopping Midi callback
+    """
+    global _midi_in, _midi_out, _midi_running
+
+    if _midi_running:
+        if _midi_in:
+            _midi_in.callback = None
+            _midi_in.close()
+        if _midi_out:
+            _midi_out.close()
+        _midi_running = False
+
+    return (_midi_in, _midi_out)
+
+#-------------------------------------------
 
 # initializing lists
 # _init_noteList()

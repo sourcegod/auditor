@@ -1,6 +1,18 @@
 Changelog for Auditor Engine
 Date: Sun, 17/07/2022
-Last update: Mon, 25/07/2022
+Last update: Sat, 06/08/2022
+
+Date: Sat, 06/08/2022
+-- Version 0.10
+-- Adding classes:
+AudiCache, AudiPlayer.
+-- Adding functions:
+play_all, stop_all, play_channel, stop_channel,
+play_instru, stop_instru, play_cache,
+gen_instruments, gen_channels, start_midi_thread, stop_midi_thread,
+start_audio_engine, stop_audio_engine.
+Come back, to manage (AudiSample class) by samples as before.
+So, we support channel convertion, from mono to stereo.
 
 Date: Mon, 25/07/2022
 -- Version 0.9

@@ -53,7 +53,6 @@ class InterfaceApp(object):
         self.audio_driver = None 
         self.player = None
         self.mixer = None
-        self._thr = None
         self._midi_in = None
         self._midi_out = None
         self._instru_lst = []
@@ -80,7 +79,7 @@ class InterfaceApp(object):
                 cacher.preload()
             self.player.init()
             self.audio_driver.start_engine()
-            self.start_midi_thread()
+            self.start_midi_thread(inport=1, outport=0, func=self._midi_handler)
 
     #-----------------------------------------
 
@@ -269,23 +268,15 @@ class InterfaceApp(object):
             if printing: 
                 print("\a")
         # time.sleep(0.1)
-        # for testing performance
-        self._count +=1
-        # print(f"Callback Count: {self._count}")
 
     #-------------------------------------------
 
-    def start_midi_thread(self):
+    def start_midi_thread(self, inport=0, outport=0, func=None):
         """
         Attach callback function to the Midi port Callback
         from InterfaceApp
         """
-
-        self._count =0
-        self._midi_in = mid.open_input(1)
-        self._midi_in.callback = self._midi_handler
-        self._midi_out = mid.open_output(0)
-        self._midi_running = True
+        (self._midi_in, self._midi_out) = mid.start_midi_thread(inport, outport, func)
 
         """
         # Note: no need threading, just attach callback function to the input port
@@ -303,14 +294,8 @@ class InterfaceApp(object):
         Stopping Midi callback
         from InterfaceApp
         """
-
-        if self._midi_running:
-            if self._midi_in:
-                self._midi_in.callback = None
-                self._midi_in.close()
-            if self._midi_out:
-                self._midi_out.close()
-            self._midi_running = False
+        
+        (self._midi_in, self._midi_out) = mid.stop_midi_thread()
 
         """
         if self._thr:
