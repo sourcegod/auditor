@@ -9,9 +9,10 @@ AudiCache, AudiPlayer.
 -- Adding functions:
 play_all, stop_all, play_channel, stop_channel,
 play_instru, stop_instru, play_cache,
-gen_instruments, gen_channels, start_midi_thread, stop_midi_thread,
+gen_instruments, gen_channels, 
+start_midi_thread, stop_midi_thread, _midi_handler,
 start_audio_engine, stop_audio_engine.
-Come back, to manage (AudiSample class) by samples as before.
+Rewind back, to manage (AudiSample class) by samples as before.
 So, we support channel convertion, from mono to stereo.
 
 Date: Mon, 25/07/2022
