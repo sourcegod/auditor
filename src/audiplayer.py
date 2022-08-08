@@ -146,7 +146,7 @@ class AudiPlayer(object):
         from AudiPlayer object
         """
 
-        if not self.mixer.cacher.is_caching: return False
+        if not self.mixer.cacher.is_caching(): return False
         self._playing =1
         self.mixer.set_cache_data(snd_num, loops, playing=self._playing)
 

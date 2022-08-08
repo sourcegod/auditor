@@ -27,13 +27,14 @@ class AudiCache(object):
         self.cache_data = None
         self._in_type = np.float32
         self._len_buf =0
-        self.is_caching = False
+        self._is_caching = False
         self.len_cache =0
         self.cache_data = []
         self.nb_buf =0 # number of buffer by each sound
         self.buf_pos =0
         self.row =0
         self.nb_frames =0
+        self._view_data = []
 
     #-----------------------------------------
     
@@ -89,17 +90,17 @@ class AudiCache(object):
                         bufobj.buf = buf.reshape(-1, self._len_buf)
                         self._view_data.append(bufobj)
 
-                        self.is_caching = True
+                        self._is_caching = True
                         # print(f"find caching sound on channel {i}")
                 else: break
             self.len_cache = len(self.cache_data)
             # print(f"voici shape view_data: {self._view_data[0].shape}")
             # print("view0 is cache_data 0? ", np.shares_memory(self._view_data[0], self.cache_data[0]))
         except IndexError:
-            self.is_caching = False
+            self._is_caching = False
             return False
         
-        if self.is_caching:
+        if self._is_caching:
             print("Preloading cache...")
         
         return True
@@ -151,6 +152,27 @@ class AudiCache(object):
             pass
 
     #-----------------------------------------
+
+    def is_caching(self):
+        """
+        returns the cache state
+        from AudiCache object
+        """
+
+        return self._is_caching
+        
+    #-----------------------------------------
+
+    def set_caching(self, caching):
+        """
+        set the cache state
+        from AudiCache object
+        """
+
+        self._is_caching = caching
+        
+    #-----------------------------------------
+
 
 #========================================
 

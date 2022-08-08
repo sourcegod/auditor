@@ -80,6 +80,7 @@ class InterfaceApp(object):
             if self.mixer:
                 cacher = self.mixer.cacher
                 cacher.preload()
+                cacher.set_caching(1)
             self.player.init()
             self.audio_driver.start_engine()
             self.start_midi_thread(inport=1, outport=0, func=self._midi_handler)

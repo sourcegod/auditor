@@ -276,8 +276,10 @@ class AudiMixer(object):
         # self.cacher.init_cache()
         self.cur_func = self.get_mix_data
 
+        # sound musb be created with channel to sync both of them
         # create reserved channel for beep
-        self.chan_beep = self.create_channel(1000)
+        # self.chan_beep = self.create_channel(1000)
+        self.chan_beep = None
     
     #-----------------------------------------
      
@@ -289,7 +291,7 @@ class AudiMixer(object):
         
         # buf_lst = np.zeros((8, self._nchannels * self._buf_size), dtype=np.float32)
         # take less place in memory
-        nb_virchan =8
+        nb_virchan =16
         buf_lst = [0] * nb_virchan
         buf1 = np.array([], dtype=np.float32)
         out_buf = np.array([], dtype=self._out_type)
@@ -311,17 +313,17 @@ class AudiMixer(object):
                 
                 """
                 if curpos == 0:
-                    print(f"\ncurpos: {curpos}, caching: {cacher.is_caching}\n")
+                    print(f"\ncurpos: {curpos}, caching: {cacher._is_caching}\n")
                 """
                 
                 # """
-                if cacher.is_caching and i < len_cache: 
+                if cacher._is_caching and i < len_cache: 
                     cache_pos = cacher.get_pos(i)
                     if curpos == 0:
                         # print("\a", file=sys.stderr)
                         cacher.set_pos(i, 0)
                         buf1 = np.copy(cacher.get_data(i))
-                        snd.set_position(cacher.nb_frames)
+                        snd.set_position(self._buf_size)
                         caching = True
                         # print(f"its caching... curpos: {curpos}")
                     

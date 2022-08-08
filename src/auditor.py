@@ -41,6 +41,19 @@ class MainApp(object):
         pass
 
     #-------------------------------------------
+    
+    def play_key(self, key):
+        """
+        play sound from key
+        from MainApp object
+        """
+        key0 =16
+        
+        if key == 'f':
+            (chan, snd) = self.mixer.get_chan_sound(key0, key0)
+            # if snd: self.player.play_channel(key0, key0)
+
+    #-------------------------------------------
 
     def main(self, stdscr, audio_driver=None, output_index=None):
         # stdscr is passing by curses.wrapper function
@@ -63,10 +76,13 @@ class MainApp(object):
             if key == 'Q':
                 self.iap.close()
                 break
-            elif key == 'f':
-                # chan1.setmute(1, 0)
-                (chan, snd) = self.mixer.get_chan_sound(key0, key0)
-                if snd: self.player.play_channel(key0, key0)
+            elif key in ('f', 'g', 'h',
+                    'i', 'j', 'k', 
+                    'l', 'm', 
+                    ):
+                self.play_key(key)    
+                # (chan, snd) = self.mixer.get_chan_sound(key0, key0)
+                # if snd: self.player.play_channel(key0, key0)
             elif key == 'g':
                 key0 +=1
                 (chan, snd) = self.mixer.get_chan_sound(key0, key0)
