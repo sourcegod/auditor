@@ -12,6 +12,8 @@ from os import path
 import audimixer as aumix
 import audiplayer as aupl
 import midutils as mid
+import audiconf as conf
+
 #------------------------------------------------------------------------------
 
 ### brouillon pour effacer
@@ -72,8 +74,9 @@ class InterfaceApp(object):
         self.player = aupl.AudiPlayer(audio_driver=self.audio_driver)
         self.mixer = self.player.mixer
         if self.audio_driver:
-            self.gen_channels()
-            self.gen_instruments()
+            self.gen_instru_from_conf()
+            # self.gen_channels()
+            # self.gen_instruments()
             if self.mixer:
                 cacher = self.mixer.cacher
                 cacher.preload()
@@ -137,6 +140,41 @@ class InterfaceApp(object):
             pass
 
     #-----------------------------------------
+    
+    def gen_instru_from_conf(self):
+        """
+        generate instruments from configuration file
+        from InterfaceApp object
+        """
+
+        self._instru_lst = []
+        key0 = 36
+        conf_dir = path.join(_mediadir, "TR808909")
+        conf_name = path.join(conf_dir, "drumkit.xml")
+        auconf = conf.AudiConf()
+        auconf.load(conf_name)
+        ins_lst = auconf.get_instruments()
+        try:
+            for (i, item) in enumerate(ins_lst):
+                # if i == 3: continue
+                instru = InstruObj()
+                filename = item["filename"]
+                fname = path.join(conf_dir, filename)
+                # in memory
+                snd = self.mixer.create_sample(fname)
+                chan = self.mixer.create_channel()
+                instru.id = item["id"]
+                instru.key = key0 +i
+                instru.snd = snd
+                instru.chan = chan
+                
+                self._instru_lst.append(instru)
+        except KeyError as err:
+            print("Error: when constructing instrument from conf.", err)
+
+
+
+    #-----------------------------------------
 
     def gen_instruments(self, count=16):
         """
@@ -145,7 +183,7 @@ class InterfaceApp(object):
         """
 
         id =1
-        self._instru_lst = []
+        # self._instru_lst = []
         key0 = 36
         chan_lst = self.mixer.get_channels()
         snd_lst = self.mixer.get_sounds()

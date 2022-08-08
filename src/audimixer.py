@@ -318,7 +318,7 @@ class AudiMixer(object):
                 if cacher.is_caching and i < len_cache: 
                     cache_pos = cacher.get_pos(i)
                     if curpos == 0:
-                        print("\a", file=sys.stderr)
+                        # print("\a", file=sys.stderr)
                         cacher.set_pos(i, 0)
                         buf1 = np.copy(cacher.get_data(i))
                         snd.set_position(cacher.nb_frames)
@@ -528,7 +528,7 @@ class AudiMixer(object):
     
     #-----------------------------------------
 
-    def create_channel(self, id):
+    def create_channel(self, id=-1):
         """
         create channel object
         from AudiMixer object

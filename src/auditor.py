@@ -52,6 +52,7 @@ class MainApp(object):
         msg = "Press a key..."
         self.Display(msg)
         while 1:
+            key0 =16
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
                 self.player.play_cache(key -48)
@@ -64,38 +65,40 @@ class MainApp(object):
                 break
             elif key == 'f':
                 # chan1.setmute(1, 0)
-                (chan, snd) = self.mixer.get_chan_sound(0, 0)
-                if snd: self.player.play_channel(0, 0)
+                (chan, snd) = self.mixer.get_chan_sound(key0, key0)
+                if snd: self.player.play_channel(key0, key0)
             elif key == 'g':
-                (chan, snd) = self.mixer.get_chan_sound(1, 1)
+                key0 +=1
+                (chan, snd) = self.mixer.get_chan_sound(key0, key0)
                 if snd: 
                     snd.set_loop_mode(1)
                     self.player.play_channel(1, 1, loops=-1)
             elif key == 'h':
-                (chan, snd) = self.mixer.get_chan_sound(3, 3)
+                key0 +=3
+                (chan, snd) = self.mixer.get_chan_sound(key0, key0)
                 if snd: 
                     snd.reverse()
                     snd.set_loop_mode(1)
                     if chan: chan.play(snd, loops=-1)
             elif key == 'j':
                 # test different sound on same channel
-                (chan, snd) = self.mixer.get_chan_sound(2, 4)
+                (chan, snd) = self.mixer.get_chan_sound(key0+2, key0+4)
                 if chan: chan.play(snd, 0)
             elif key == 'k':
                 # stream test
                 # snd4.set_loop_mode(1)
-                (chan, snd) = self.mixer.get_chan_sound(4, 4)
+                (chan, snd) = self.mixer.get_chan_sound(key0+4, key0+4)
                 if snd: 
                     snd.set_loop_points(5, 10, 1)
                     if chan: chan.play(snd, -1)
             elif key == 'l':
-                (chan, snd) = self.mixer.get_chan_sound(5, 5)
+                (chan, snd) = self.mixer.get_chan_sound(key0+5, key0+5)
                 if snd: 
                     snd.set_loop_mode(1)
                 loops =-1 # infinitely
                 if chan: chan.play(snd, loops)
             elif key == 'm':
-                (chan, snd) = self.mixer.get_chan_sound(6, 6)
+                (chan, snd) = self.mixer.get_chan_sound(key0+6, key0+6)
                 if chan: chan.play(snd)
             elif key == 'x':
                 # aud.mixer.play()

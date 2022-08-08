@@ -85,9 +85,14 @@ class DspEffect(object):
 
 class AudiChannel(DspEffect):
     """ channel manager """
-    def __init__(self, id):
+    _id =0
+    def __init__(self, id=-1):
         DspEffect.__init__(self)
-        self.id = id
+        if id >= 0:
+            self._id = id
+        else:
+            self._id = AudiChannel._id
+        AudiChannel._id +=1
         self._sound = None
         self._playing =0
         self._paused =0
