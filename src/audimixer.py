@@ -299,9 +299,16 @@ class AudiMixer(object):
         chan_num =0
         chan_count =0
         self._mixing =0
+        # use of local variable to optimizing lookup attributes and functions
         cacher = self.cacher
         len_cache = cacher.len_cache
-        caching = False
+        ca_get_data = cacher.get_data
+        ca_get_pos = cacher.get_pos
+        ca_set_pos = cacher.set_pos
+        ca_is_caching = cacher.is_caching
+        ca_nb_buf = cacher.nb_buf
+        ca_nb_frames = cacher.nb_frames
+        cached = False
         self._roll_lst.last()
 
 
@@ -311,29 +318,21 @@ class AudiMixer(object):
                 curpos = snd.get_position(0) # in frames
                 endpos = snd.get_end_position(0) # in frames
                 
-                """
-                if curpos == 0:
-                    print(f"\ncurpos: {curpos}, caching: {cacher._is_caching}\n")
-                """
-                
-                # """
-                if cacher._is_caching and i < len_cache: 
-                    cache_pos = cacher.get_pos(i)
+                if ca_is_caching() and i < len_cache: 
+                    cache_pos = ca_get_pos(i)
                     if curpos == 0:
                         # print("\a", file=sys.stderr)
-                        cacher.set_pos(i, 0)
-                        buf1 = np.copy(cacher.get_data(i))
-                        snd.set_position(self._buf_size)
-                        caching = True
+                        ca_set_pos(i, 0)
+                        buf1 = np.copy(ca_get_data(i))
+                        snd.set_position(cacher.nb_frames)
+                        cached = True
                         # print(f"its caching... curpos: {curpos}")
                     
-                    elif cache_pos < cacher.nb_buf:
-                        buf1 = np.copy(cacher.get_data(i))
+                    elif cache_pos < ca_nb_buf:
+                        buf1 = np.copy(ca_get_data(i))
                         # snd.set_position(curpos + self._buf_size)
-                        caching = True
+                        cached = True
                         # print(f"its caching... buf_pos: {cacher.buf_pos}, curpos: {curpos}")
-                # 
-                # """
                 
                 if curpos >= endpos:
                     # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
@@ -346,9 +345,8 @@ class AudiMixer(object):
                 # cause buf in byte, one frame = 4 bytes, 2 signed short, 
                 # for 16 bits, 2 channels, 44100 rate,
                 
-                if not caching:
+                if not cached:
                     buf1 = snd.read_data(self._buf_size)
-                    pass
                 if not buf1.size:
                     debug("not buf1")
                     pass

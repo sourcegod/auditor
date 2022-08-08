@@ -65,7 +65,7 @@ class AudiCache(object):
         if not self._mixer: return False
         chan_lst = self._mixer.get_channels()
         nb_chan  = len(chan_lst)
-        self.nb_buf =2 # number of buffer for each sound to preload
+        self.nb_buf =8 # number of buffer for each sound to preload
         nb_cache = nb_chan
         self.init_cache(nb_cache)
         self.nb_frames = self.nb_buf * self._buf_size
