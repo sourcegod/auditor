@@ -243,6 +243,7 @@ class AudiMixer(object):
         self._mixing =0
         self._max_int16 = 32767
         self._len_buf =1
+        self._mixing =0
         # to maintaining the audio callback alive
         self._ret_buf = None
         self.cacher = None
@@ -274,6 +275,7 @@ class AudiMixer(object):
         # create cache data
         self.cacher = auc.AudiCache(self)
         # self.cacher.init_cache()
+        self._mixing =1
         self.cur_func = self.get_mix_data
 
         # sound musb be created with channel to sync both of them
@@ -298,7 +300,6 @@ class AudiMixer(object):
         # debug("je pass ici")
         chan_num =0
         chan_count =0
-        self._mixing =0
         # use of local variable to optimizing lookup attributes and functions
         cacher = self.cacher
         len_cache = cacher.len_cache
@@ -349,7 +350,6 @@ class AudiMixer(object):
                     buf1 = snd.read_data(self._buf_size)
                 if not buf1.size:
                     debug("not buf1")
-                    pass
                     chan.set_active(0)
                     snd.set_play_count(0)
                     continue
@@ -376,6 +376,10 @@ class AudiMixer(object):
                     # buf1 = chan.set_effect(buf1)
                     """
                     
+                    """
+                    if not self._mixing:
+                        break
+                        """
                     # avoid saturation
                     buf1 *= self._vol_ratio
                     if chan.is_vel():
@@ -396,9 +400,12 @@ class AudiMixer(object):
                         # debug("voici i: %d et shape: %s" %(i, buf1.shape))
         
         # out of the loop
+        if len(buf1) and not self._mixing:
+            # print("Je passe ici")
+            print("\a")
+            return (buf1 * self._max_int16).astype(np.int16).tostring()
         # if buf_lst.size:
         if chan_count == 0: # no more audio data
-            self._mixing =0
             # maintaining the audio callback alive
             return self._ret_buf
         elif chan_count == 1: # no copy data
@@ -435,19 +442,27 @@ class AudiMixer(object):
 
         if out_buf.size:
             # debug("voici: %s" % out_buf)
-            self._mixing =1
             
             # avoid copy
             return (out_buf * self._max_int16).astype(np.int16).tostring()
     
         else: # out_buf  is empty
-            self._mixing =0
             # debug("Mixing finished...")
             
             return self._ret_buf
 
     #-----------------------------------------
               
+    def set_mixing(self, mixing):
+        """
+        set the mix state
+        from AudiMixer object
+        """
+
+        self._mixing = mixing
+
+    #-----------------------------------------
+
     def set_cache_data(self, snd_num=0, loops=0, playing=0):
         """
         prepare cache data for playing

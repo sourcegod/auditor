@@ -8,6 +8,7 @@
 """
 
 import os, sys
+import time
 import audiport as aup
 import interfaceapp as intapp
 import curses
@@ -24,11 +25,18 @@ class MainApp(object):
 
     #-------------------------------------------
 
-    def Display(self, msg):
+    def display(self, msg):
         self.win.move(2, 0)
         self.win.clrtoeol()
         self.win.refresh()
+        # waiting for changes for the speech synthesis
+        time.sleep(0.1)
         self.win.addstr(2, 0, msg)
+
+    #-------------------------------------------
+
+    def beep(self):
+        curses.beep()
 
     #-------------------------------------------
 
@@ -58,17 +66,23 @@ class MainApp(object):
     def main(self, stdscr, audio_driver=None, output_index=None):
         # stdscr is passing by curses.wrapper function
         self.win = stdscr
-        self.iap = intapp.InterfaceApp()
+        self.iap = intapp.InterfaceApp(self)
         self.iap.init_app(audio_driver, output_index)
         self.mixer = self.iap.mixer
         self.player = self.iap.player
         msg = "Press a key..."
-        self.Display(msg)
+        self.display(msg)
         while 1:
             key0 =16
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
-                self.player.play_cache(key -48)
+                mode_num = self.iap.get_mode_num()
+                num = key -48
+                if mode_num in (0, 1, 2, 3):
+                    # self.beep()
+                    self.player.play_channel(num, num)
+                elif mode_num == 4: # play cache only
+                    self.player.play_cache(num)
                 continue
                 
             elif key < 128:
@@ -150,6 +164,10 @@ class MainApp(object):
             elif key == '>':
                 (chan, snd) = self.mixer.get_chan_sound(0, 0)
                 chan.setend()
+            elif key == '/':
+                self.iap.select_mode(step=-1, adding=1)
+            elif key == '*':
+                self.iap.select_mode(step=1, adding=1)
             else:
                 curses.beep()
                 pass

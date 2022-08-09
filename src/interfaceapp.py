@@ -13,6 +13,7 @@ import audimixer as aumix
 import audiplayer as aupl
 import midutils as mid
 import audiconf as conf
+import utils as uti
 
 #------------------------------------------------------------------------------
 
@@ -51,13 +52,23 @@ class InstruObj(object):
 
 class InterfaceApp(object):
     """ Interface app manager """
-    def __init__(self, audio_driver=None, output_index=None):
+    def __init__(self, parent=None):
+        self._parent = parent
         self.audio_driver = None 
         self.player = None
         self.mixer = None
+        self.cacher = None
         self._midi_in = None
         self._midi_out = None
         self._instru_lst = []
+        self._mode_num =0
+        self._mode_lst = [
+                "With Mix With Cache",
+                "With Mix No Cache",
+                "No Mix With Cache",
+                "No Mix No Cache",
+                "With Cache Only",
+                ]
 
     #-----------------------------------------
     
@@ -73,14 +84,15 @@ class InterfaceApp(object):
             self.audio_driver.parent = self
         self.player = aupl.AudiPlayer(audio_driver=self.audio_driver)
         self.mixer = self.player.mixer
+        if self.mixer:
+            self.cacher = self.mixer.cacher
         if self.audio_driver:
             self.gen_instru_from_conf()
             # self.gen_channels()
             # self.gen_instruments()
-            if self.mixer:
-                cacher = self.mixer.cacher
-                cacher.preload()
-                cacher.set_caching(1)
+            if self.cacher:
+                self.cacher.preload()
+                self.cacher.set_caching(1)
             self.player.init()
             self.audio_driver.start_engine()
             self.start_midi_thread(inport=1, outport=0, func=self._midi_handler)
@@ -100,6 +112,76 @@ class InterfaceApp(object):
 
     #-----------------------------------------
      
+    def get_mode_num(self):
+        """
+        returns mode number
+        from InterfaceApp object
+        """
+
+        return self._mode_num
+    
+    #-----------------------------------------
+
+    def change_mode(self, mode_num, step=0, adding=0):
+        """
+        changing mode list
+        """
+
+        changing =0
+        val =0
+        max_val = len(self._mode_lst) -1
+        # mode_num = self._mode_num
+        if adding == 0: # no inc or dec value
+            if step == -1:
+                step = max_val
+        else: # adding value
+            val = mode_num + step
+            changing =1
+        if changing:
+            step = uti.limit_value(val, 0, max_val)
+        if mode_num != step:
+            mode_num = step
+        else: # no change for mode num
+            uti.beep()
+        
+        item = self._mode_lst[mode_num]
+        return (mode_num, item)
+    
+    #-------------------------------------------
+
+    def select_mode(self, step=0, adding=0):
+        """
+        select mode item
+        from InterfaceApp object
+        """
+        
+        if self.cacher is None or self.mixer is None: 
+            return 
+        (mode_num, mode_item) = self.change_mode(self._mode_num, step, adding)
+        if self._mode_num != mode_num:
+            self._mode_num = mode_num
+            if mode_num == 0: # with mix with cache 
+                self.cacher.set_caching(1)
+                self.mixer.set_mixing(1)
+            elif mode_num == 1:  # with mix no cache
+                self.cacher.set_caching(0)
+                self.mixer.set_mixing(1)
+            elif mode_num == 2:  # no mix with cache
+                self.cacher.set_caching(1)
+                self.mixer.set_mixing(0)
+            elif mode_num == 3:  # no mix no cache
+                self.cacher.set_caching(0)
+                self.mixer.set_mixing(0)
+            elif mode_num == 4:  # only cache
+                self.cacher.set_caching(1)
+                self.mixer.set_mixing(0)
+           
+        msg = f"Mode {mode_num}: {mode_item}"
+        if self._parent:
+            self._parent.display(msg)
+
+    #-------------------------------------------
+
     def gen_channels(self):
         """
         Generate default channels and sounds

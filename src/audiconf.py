@@ -29,7 +29,7 @@ class AudiConf(object):
             print("Error: configuration file not found", err)
             return False
         
-        print(f"root_node: {root_node}")
+        # print(f"root_node: {root_node}")
 
         for elem in root_node.findall('instrumentList/instrument'):
             instru_dic = {}
@@ -50,6 +50,7 @@ class AudiConf(object):
             print(f"volume: {item['volume']}, isMuted: {item['isMuted']}, pan_L: {item['pan_L']}, pan_R: {item['pan_R']}")
         """    
         
+        print("Loading Configuration file...")
         return True            
    
     #-------------------------------------------
