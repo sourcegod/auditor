@@ -232,6 +232,9 @@ class AudiMixer(object):
         self._curpos =0
         self._sound_lst = [] # list for sound object
         self._chan_lst = [] # list for channel object
+        self._chan = None
+        self._sound = None
+        self._snd_num =0
         self._thr_audio = None
         # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
@@ -239,11 +242,11 @@ class AudiMixer(object):
         self._rate = 44100
         self._format =0
         self._in_type = np.float64
-        self._out_type = np.int16
+        # self._out_type = np.int16
+        self._out_type = np.float32
         self._mixing =0
         self._max_int16 = 32767
         self._len_buf =1
-        self._mixing =0
         # to maintaining the audio callback alive
         self._ret_buf = None
         self.cacher = None
@@ -252,7 +255,6 @@ class AudiMixer(object):
         # print("voici rool: ", self._roll_lst)
         self._vol_ratio =0.5
         self.cur_func = None
-        self._snd_num =0
 
     #-----------------------------------------
 
@@ -267,6 +269,8 @@ class AudiMixer(object):
         self._format = format
         # debug("in the mixer init: nchannels: ", self._nchannels)
         self._len_buf = self._buf_size * self._nchannels
+        # self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
+        # convert to bytes in float32
         self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
 
         if self.audio_driver:
@@ -402,8 +406,9 @@ class AudiMixer(object):
         # out of the loop
         if len(buf1) and not self._mixing:
             # print("Je passe ici")
-            print("\a")
-            return (buf1 * self._max_int16).astype(np.int16).tostring()
+            # print("\a")
+            return buf1.tobytes()
+            # return (buf1 * self._max_int16).astype(np.int16).tostring()
         # if buf_lst.size:
         if chan_count == 0: # no more audio data
             # maintaining the audio callback alive
@@ -444,7 +449,8 @@ class AudiMixer(object):
             # debug("voici: %s" % out_buf)
             
             # avoid copy
-            return (out_buf * self._max_int16).astype(np.int16).tostring()
+            return out_buf.tobytes()
+            # return (out_buf * self._max_int16).astype(np.int16).tostring()
     
         else: # out_buf  is empty
             # debug("Mixing finished...")
@@ -473,13 +479,13 @@ class AudiMixer(object):
         self.cacher.set_pos(snd_num, 0)
         self._snd_num = snd_num
         self._playing = playing
-        self.cur_func = self.gen_cache_data
+        # self.cur_func = self.get_cache_data
         
         return True
 
     #-----------------------------------------
 
-    def gen_cache_data(self, data=None):
+    def get_cache_data(self):
         """
         returns raw data from the cache without Sound object
         from AudiMixer object
@@ -488,13 +494,104 @@ class AudiMixer(object):
         if self._playing:
             data = self.cacher.get_data(self._snd_num)
             if data is not None:
-                return (data * self._max_int16).astype(np.int16).tostring()
+                # convert to byte in float32
+                return data.tobytes()
         
         self._playing =0
         # restore previous Audio Callback function
-        self.cur_func = self.get_mix_data
+        # self.cur_func = self.get_mix_data
         return self._ret_buf
     
+    #-----------------------------------------
+
+    def set_sound_data(self, snd_num=0, loops=0, playing=0):
+        """
+        prepare sound data for playing
+        from AudiMixer object
+        """
+        
+        try:
+            snd = self._sound_lst[snd_num]
+            chan0 = self._chan_lst[0]
+        except IndexError as err:
+            print("Error: no sound found.", err)
+            return False
+        
+        snd.set_position(0)
+        self._snd_num = snd_num
+        self._sound = snd
+        chan0.set_active(1)
+        self._chan = chan0
+        self._playing = playing
+        # self.cur_func = self.get_sound_data
+        
+        return True
+
+    #-----------------------------------------
+
+    def get_sound_data(self):
+        """
+        returns raw data from the Sound object
+        from AudiMixer object
+        """
+
+        chan = self._chan
+        snd = self._sound
+        # if snd is None or chan is None:
+        #    return self._ret_buf
+        if snd and chan and chan.is_active():
+            curpos = snd.get_position(0)
+            endpos = snd.get_end_position(0)
+            if curpos >= endpos:
+                # snd.set_position(0)
+                # print(f"curpos: {curpos}")
+                # print(f"voici snd: ", snd)
+                print("\a")
+                chan.set_active(0)
+            else:
+                data = snd.read_data(self._buf_size)
+                if data.size:
+                    if len(data) < self._len_buf:
+                        data.resize(self._len_buf)
+                    # convert to byte in float32
+                    return data.tobytes()
+            
+        self._playing =0
+        # restore previous Audio Callback function
+        # self.cur_func = self.get_mix_data
+        
+        # print("\a")
+        return self._ret_buf
+    
+    #-----------------------------------------
+
+    def set_mix_mode(self, mode_num):
+        """
+        assign to the audio callback the right function to call
+        from AudiMixer object
+        """
+
+        if mode_num == 0: # with mix with cache 
+            self.cacher.set_caching(1)
+            self.set_mixing(1)
+            self.cur_func = self.get_mix_data
+        elif mode_num == 1:  # with mix no cache
+            self.cacher.set_caching(0)
+            self.set_mixing(1)
+            self.cur_func = self.get_mix_data
+        elif mode_num == 2:  # no mix with cache
+            self.cacher.set_caching(1)
+            self.set_mixing(0)
+            self.cur_func = self.get_mix_data
+        elif mode_num == 3:  # no mix no cache
+            self.cacher.set_caching(0)
+            self.set_mixing(0)
+            self.cur_func = self.get_sound_data
+        elif mode_num == 4:  # only cache
+            self.cacher.set_caching(1)
+            self.set_mixing(0)
+            self.cur_func = self.get_cache_data
+
     #-----------------------------------------
 
     def beep(self, freq=440, lensec=1, loops=-2):

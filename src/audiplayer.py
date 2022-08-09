@@ -15,6 +15,7 @@ class AudiPlayer(object):
     def __init__(self, audio_driver=None):
         self.audio_driver = audio_driver
         self.mixer = aumix.AudiMixer(audio_driver)
+        self.cacher = self.mixer.cacher
         self.mixer.init()
         self._chan_lst = []
         self._snd_lst = []
@@ -146,7 +147,7 @@ class AudiPlayer(object):
         from AudiPlayer object
         """
 
-        if not self.mixer.cacher.is_caching(): return False
+        if self.cacher and not self.cacher.is_caching(): return False
         self._playing =1
         self.mixer.set_cache_data(snd_num, loops, playing=self._playing)
 
@@ -154,6 +155,20 @@ class AudiPlayer(object):
         return True
         
     #-----------------------------------------
+
+    def play_sound(self, snd_num=0, loops=0):
+        """
+        play raw data from the Sound
+        from AudiPlayer object
+        """
+
+        self._playing =1
+        self.mixer.set_sound_data(snd_num, loops, playing=self._playing)
+
+        return True
+        
+    #-----------------------------------------
+
 
 #========================================
 

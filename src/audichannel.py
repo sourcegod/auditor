@@ -164,11 +164,11 @@ class AudiChannel(DspEffect):
         """
 
         if self._sound:
-            self._active =0
             if not closing:
                 self._sound.set_position(0)
-            self._playing =0
-            self._paused =0
+        self._active =0
+        self._playing =0
+        self._paused =0
 
     #-----------------------------------------
 

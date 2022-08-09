@@ -203,7 +203,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # (self._nchannels * self._sampwidth * self._rate)
         # equiv': self._length = self._nframes / float(self._rate)
         try:
-            (wav_data, rate) = sf.read(filename)
+            (wav_data, rate) = sf.read(filename, dtype='float32')
         except RuntimeError as err:
             print(f"Error: unable to load in memory wave file: {filename}")
             return
@@ -275,6 +275,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         Temporary function, just to backup old version based on samples instead frames
         from AudiSample object
         """
+        buf_arr = None
 
         nb_samples = nb_frames * self._nchannels # convert nb_frames in samples
         # curpos in frames

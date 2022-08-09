@@ -160,7 +160,11 @@ class InterfaceApp(object):
         (mode_num, mode_item) = self.change_mode(self._mode_num, step, adding)
         if self._mode_num != mode_num:
             self._mode_num = mode_num
+            self.mixer.set_mix_mode(mode_num)
+            
+            """
             if mode_num == 0: # with mix with cache 
+                self.mixer.set_mix_mode(mode_num)
                 self.cacher.set_caching(1)
                 self.mixer.set_mixing(1)
             elif mode_num == 1:  # with mix no cache
@@ -175,6 +179,7 @@ class InterfaceApp(object):
             elif mode_num == 4:  # only cache
                 self.cacher.set_caching(1)
                 self.mixer.set_mixing(0)
+            """
            
         msg = f"Mode {mode_num}: {mode_item}"
         if self._parent:

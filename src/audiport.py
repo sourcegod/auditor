@@ -294,7 +294,7 @@ class PortAudioDriver(BaseDriver):
         if self._out is None:
             self._out = pyaudio.PyAudio()
         # self._out.get_format_from_width(self.wf.getsampwidth())
-        self._format = pyaudio.paInt16
+        self._format = pyaudio.paFloat32 # pyaudio.paInt16
         self._nchannels = nchannels
         self._rate = rate
 
