@@ -237,7 +237,9 @@ class InterfaceApp(object):
 
         self._instru_lst = []
         key0 = 36
-        conf_dir = path.join(_mediadir, "TR808909")
+        # conf_dir = path.join(_mediadir, "TR808909")
+        conf_dir = path.join(_mediadir, "TR808Classic")
+        # conf_dir = path.join(_mediadir, "TR808Kit")
         conf_name = path.join(conf_dir, "drumkit.xml")
         auconf = conf.AudiConf()
         auconf.load(conf_name)

@@ -34,7 +34,16 @@ class AudiConf(object):
         for elem in root_node.findall('instrumentList/instrument'):
             instru_dic = {}
             instru_dic["id"] = elem.findtext('id')
-            instru_dic["filename"] = elem.findtext('filename')
+            filename = elem.findtext('filename')
+            if filename is not None:
+                instru_dic["filename"] =  filename
+            else:
+                layer = elem.find('layer')
+                if layer is not None:
+                    filename = layer.findtext('filename')
+                instru_dic["filename"] =  filename
+
+
             instru_dic["name"] = elem.findtext('name')
             instru_dic["volume"] = elem.findtext('volume')
             instru_dic["isMuted"] = elem.findtext('isMuted')
