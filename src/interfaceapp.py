@@ -66,7 +66,8 @@ class InterfaceApp(object):
                 "With Mix With Cache",
                 "With Mix No Cache",
                 "No Mix With Cache",
-                "No Mix No Cache",
+                "No Mix No Cache By Channel",
+                "No Mix No Cache By Sound",
                 "With Cache Only",
                 ]
 
@@ -161,31 +162,30 @@ class InterfaceApp(object):
         if self._mode_num != mode_num:
             self._mode_num = mode_num
             self.mixer.set_mix_mode(mode_num)
-            
-            """
-            if mode_num == 0: # with mix with cache 
-                self.mixer.set_mix_mode(mode_num)
-                self.cacher.set_caching(1)
-                self.mixer.set_mixing(1)
-            elif mode_num == 1:  # with mix no cache
-                self.cacher.set_caching(0)
-                self.mixer.set_mixing(1)
-            elif mode_num == 2:  # no mix with cache
-                self.cacher.set_caching(1)
-                self.mixer.set_mixing(0)
-            elif mode_num == 3:  # no mix no cache
-                self.cacher.set_caching(0)
-                self.mixer.set_mixing(0)
-            elif mode_num == 4:  # only cache
-                self.cacher.set_caching(1)
-                self.mixer.set_mixing(0)
-            """
-           
+          
         msg = f"Mode {mode_num}: {mode_item}"
         if self._parent:
             self._parent.display(msg)
 
     #-------------------------------------------
+
+    def play_mode(self, num):
+        """
+        play belong mode number by channel or sound number
+        from InterfaceApp object
+        """
+
+        if not self.player: return
+        mode_num = self._mode_num
+        if mode_num in (0, 1, 2, 3):
+            self.player.play_channel(num, num)
+        elif mode_num == 4: # play sound only
+            self.player.play_sound(num)
+        elif mode_num == 5: # play cache only
+            self.player.play_cache(num)
+
+    #-------------------------------------------
+
 
     def gen_channels(self):
         """

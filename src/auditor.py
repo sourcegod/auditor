@@ -76,15 +76,8 @@ class MainApp(object):
             key0 =16
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
-                mode_num = self.iap.get_mode_num()
                 num = key -48
-                if mode_num in (0, 1, 2,):
-                    # self.beep()
-                    self.player.play_channel(num, num)
-                elif mode_num == 3: # play sound only
-                    self.player.play_sound(num)
-                elif mode_num == 4: # play cache only
-                    self.player.play_cache(num)
+                self.iap.play_mode(num)
                 continue
                 
             elif key < 128:

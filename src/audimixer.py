@@ -483,6 +483,9 @@ class AudiMixer(object):
         for (i, chan) in enumerate(chan_lst):
             if chan.is_active():
                 snd = chan.get_sound()
+                if not snd: 
+                    chan.set_active(0)
+                    continue
                 curpos = snd.get_position(0) # in frames
                 endpos = snd.get_end_position(0) # in frames
                 
@@ -521,13 +524,15 @@ class AudiMixer(object):
                     chan.set_active(0)
                     snd.set_play_count(0)
                     continue
-                else: # whether buf1 size
+                else: # whether buf1 have size
                     if len(buf1) < self._len_buf:
                         buf1.resize(self._len_buf)
                         chan.set_active(0)
 
                     if not mixing:
+                        # dont apply volume, effects ...
                         continue
+
                     # avoid saturation
                     buf1 *= self._vol_ratio
                     if chan.is_vel():
@@ -654,12 +659,10 @@ class AudiMixer(object):
             # print("\a")
             curpos = snd.get_position(0)
             endpos = snd.get_end_position(0)
-            print(f"curpos: {curpos}, endpos: {endpos}")
+            # print(f"curpos: {curpos}, endpos: {endpos}")
             # curpos+1 for flac format where last curpos is = endpos -1
             if curpos+1 >= endpos:
                 # snd.set_position(0)
-                # print(f"curpos: {curpos}")
-                # print(f"voici snd: ", snd)
                 print("\a")
                 chan.set_active(0)
             else:
@@ -699,11 +702,15 @@ class AudiMixer(object):
             self.cacher.set_caching(1)
             self.set_mixing(0)
             self.cur_func = self.get_buf_data
-        elif mode_num == 3:  # no mix no cache
+        elif mode_num == 3:  # no mix no cache by channel
+            self.cacher.set_caching(0)
+            self.set_mixing(0)
+            self.cur_func = self.get_buf_data
+        elif mode_num == 4:  # no mix no cache by Sound
             self.cacher.set_caching(0)
             self.set_mixing(0)
             self.cur_func = self.get_sound_data
-        elif mode_num == 4:  # only cache
+        elif mode_num == 5:  # only cache
             self.cacher.set_caching(1)
             self.set_mixing(0)
             self.cur_func = self.get_cache_data
