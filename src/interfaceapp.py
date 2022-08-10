@@ -70,6 +70,8 @@ class InterfaceApp(object):
                 "No Mix No Cache By Sound",
                 "With Cache Only",
                 ]
+        self._key_num =0
+        self._key_lst = range(0, 61, 10)
 
     #-----------------------------------------
     
@@ -125,6 +127,7 @@ class InterfaceApp(object):
 
     def change_mode(self, mode_num, step=0, adding=0):
         """
+        Deprecated function
         changing mode list
         """
 
@@ -186,6 +189,55 @@ class InterfaceApp(object):
             self.player.play_cache(num)
 
     #-------------------------------------------
+
+    def get_key0(self):
+        """
+        returns the key0 item
+        from InterfaceApp object
+        """
+
+        try:
+            return self._key_lst[self._key_num]
+        except IndexError:
+            return 0
+
+    #-------------------------------------------
+
+    def select_key0(self, step=0, adding=0):
+        """
+        select keyboard key range
+        from InterfaceApp object
+        """
+        
+        (key_num, key_item) = uti.change_item(self._key_num, self._key_lst, step, adding)
+        if self._key_num != key_num:
+            self._key_num = key_num
+        else:
+            key_item = self._key_lst[self._key_num]
+          
+        msg = f"Key0 range: {key_item} to {key_item+9}"
+        if self._parent:
+            self._parent.display(msg)
+
+    #-------------------------------------------
+
+    def play_mode(self, num):
+        """
+        play belong mode number by channel or sound number
+        from InterfaceApp object
+        """
+
+        if not self.player: return
+        mode_num = self._mode_num
+        if mode_num in (0, 1, 2, 3):
+            self.player.play_channel(num, num)
+        elif mode_num == 4: # play sound only
+            self.player.play_sound(num)
+        elif mode_num == 5: # play cache only
+            self.player.play_cache(num)
+
+    #-------------------------------------------
+
 
 
     def gen_channels(self):

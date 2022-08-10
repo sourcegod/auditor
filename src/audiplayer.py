@@ -96,8 +96,9 @@ class AudiPlayer(object):
             chan = self._chan_lst[chan_num]
             snd = self._snd_lst[snd_num]
         except IndexError:
-            print("Index Error...")
-            return
+            # print("Index Error: Channel or Sound number out of range ...")
+            return False
+
         chan.play(snd, loops)
 
         return True

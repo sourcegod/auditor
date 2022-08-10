@@ -69,15 +69,20 @@ class MainApp(object):
         self.iap = intapp.InterfaceApp(self)
         self.iap.init_app(audio_driver, output_index)
         self.mixer = self.iap.mixer
+        len_chan_lst = len(self.mixer.get_channels())
         self.player = self.iap.player
+        key0 =0
         msg = "Press a key..."
         self.display(msg)
         while 1:
-            key0 =16
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
                 num = key -48
-                self.iap.play_mode(num)
+                num += key0
+                if num < len_chan_lst:
+                    self.iap.play_mode(num)
+                else:
+                    self.beep()
                 continue
                 
             elif key < 128:
@@ -163,6 +168,12 @@ class MainApp(object):
                 self.iap.select_mode(step=-1, adding=1)
             elif key == '*':
                 self.iap.select_mode(step=1, adding=1)
+            elif key == '-':
+                self.iap.select_key0(step=-1, adding=1)
+                key0 = self.iap.get_key0()
+            elif key == '+':
+                self.iap.select_key0(step=1, adding=1)
+                key0 = self.iap.get_key0()
             else:
                 curses.beep()
                 pass
