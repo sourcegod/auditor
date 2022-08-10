@@ -315,7 +315,8 @@ class AudiMixer(object):
         ca_nb_buf = cacher.nb_buf
         ca_nb_frames = cacher.nb_frames
         cached = False
-        self._roll_lst.last()
+        len_buf_lst = len(buf_lst)
+        num = -1 # for index of buf_lst
 
 
         for (i, chan) in enumerate(chan_lst):
@@ -391,12 +392,10 @@ class AudiMixer(object):
                     # buf1 = buf1 / 2
                     
                     # verify whether there is a free place
-                    num = self._roll_lst.next()
-                    if num < len(buf_lst):
-                        # buf_lst[chan_num] = buf1
-                        buf_lst[num] = buf1
-                        # chan_num = i
-                        chan_num = num
+                    num = (num + 1) % len_buf_lst
+                    buf_lst[num] = buf1
+                    chan_num = num
+                    if chan_count < len_buf_lst:
                         chan_count +=1
                         # debug("voici i: %d et shape: %s" %(i, buf1.shape))
         
