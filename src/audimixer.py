@@ -305,6 +305,7 @@ class AudiMixer(object):
         chan_num =0
         chan_count =0
         # use of local variable to optimizing lookup attributes and functions
+        chan_lst = self._chan_lst
         cacher = self.cacher
         len_cache = cacher.len_cache
         ca_get_data = cacher.get_data
@@ -317,7 +318,7 @@ class AudiMixer(object):
         self._roll_lst.last()
 
 
-        for (i, chan) in enumerate(self._chan_lst):
+        for (i, chan) in enumerate(chan_lst):
             if chan.is_active():
                 snd = chan.get_sound()
                 curpos = snd.get_position(0) # in frames
@@ -380,10 +381,6 @@ class AudiMixer(object):
                     # buf1 = chan.set_effect(buf1)
                     """
                     
-                    """
-                    if not self._mixing:
-                        break
-                        """
                     # avoid saturation
                     buf1 *= self._vol_ratio
                     if chan.is_vel():
@@ -404,12 +401,6 @@ class AudiMixer(object):
                         # debug("voici i: %d et shape: %s" %(i, buf1.shape))
         
         # out of the loop
-        if len(buf1) and not self._mixing:
-            # print("Je passe ici")
-            # print("\a")
-            return buf1.tobytes()
-            # return (buf1 * self._max_int16).astype(np.int16).tostring()
-        # if buf_lst.size:
         if chan_count == 0: # no more audio data
             # maintaining the audio callback alive
             return self._ret_buf
@@ -529,6 +520,77 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def get_sound_cache_data(self):
+        """
+        temporary function to test playing sound with cache, with no mixing
+        returns raw data from the Cache and Sound object, witout mixing
+        from AudiMixer object
+        """
+
+        buf1 = np.array([], dtype=np.float32)
+        # use of local variable to optimizing lookup attributes and functions
+        chan_lst = self._chan_lst
+        cacher = self.cacher
+        len_cache = cacher.len_cache
+        ca_get_data = cacher.get_data
+        ca_get_pos = cacher.get_pos
+        ca_set_pos = cacher.set_pos
+        ca_is_caching = cacher.is_caching
+        ca_nb_buf = cacher.nb_buf
+        ca_nb_frames = cacher.nb_frames
+        cached = False
+
+
+        for (i, chan) in enumerate(chan_lst):
+            if chan.is_active():
+                snd = chan.get_sound()
+                curpos = snd.get_position(0) # in frames
+                endpos = snd.get_end_position(0) # in frames
+                
+                if ca_is_caching() and i < len_cache: 
+                    cache_pos = ca_get_pos(i)
+                    if curpos == 0:
+                        # print("\a", file=sys.stderr)
+                        ca_set_pos(i, 0)
+                        buf1 = np.copy(ca_get_data(i))
+                        snd.set_position(cacher.nb_frames)
+                        cached = True
+                        # print(f"its caching... curpos: {curpos}")
+                    
+                    elif cache_pos < ca_nb_buf:
+                        buf1 = np.copy(ca_get_data(i))
+                        # snd.set_position(curpos + self._buf_size)
+                        cached = True
+                        # print(f"its caching... buf_pos: {cacher.buf_pos}, curpos: {curpos}")
+                
+                if curpos >= endpos:
+                    # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
+                    snd.loop_manager()
+                    if not snd.is_looping():
+                        chan.set_active(0)
+                        continue
+               
+                if not cached:
+                    buf1 = snd.read_data(self._buf_size)
+                if not buf1.size:
+                    debug("not buf1")
+                    chan.set_active(0)
+                    snd.set_play_count(0)
+                    continue
+                else:
+                    if len(buf1) < self._len_buf:
+                        buf1.resize(self._len_buf)
+                        chan.set_active(0)
+                        # debug(f"Buffer resized: {len(buf1)}, with len_buf: {self._len_buf}")
+                        continue
+        if buf1.size:
+            return buf1.tobytes()
+        else:
+            return self._ret_buf
+    
+    #-----------------------------------------
+
+
     def get_sound_data(self):
         """
         returns raw data from the Sound object
@@ -550,11 +612,13 @@ class AudiMixer(object):
                 chan.set_active(0)
             else:
                 data = snd.read_data(self._buf_size)
-                if data.size:
-                    if len(data) < self._len_buf:
-                        data.resize(self._len_buf)
-                    # convert to byte in float32
-                    return data.tobytes()
+                if not data.size:
+                    chan.set_active(0)
+                    return self._ret_buf
+                if len(data) < self._len_buf:
+                    data.resize(self._len_buf)
+                # convert to byte in float32
+                return data.tobytes()
             
         self._playing =0
         # restore previous Audio Callback function
@@ -582,7 +646,7 @@ class AudiMixer(object):
         elif mode_num == 2:  # no mix with cache
             self.cacher.set_caching(1)
             self.set_mixing(0)
-            self.cur_func = self.get_mix_data
+            self.cur_func = self.get_sound_cache_data
         elif mode_num == 3:  # no mix no cache
             self.cacher.set_caching(0)
             self.set_mixing(0)
