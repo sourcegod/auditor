@@ -58,33 +58,33 @@ def limit_value(val, min_val=0, max_val=127):
 
 #-------------------------------------------
 
-def change_data(data_num, data_lst, step=0, adding=0):
+def change_item(item_num, item_lst, step=0, adding=0):
     """
-    generic change data
+    generic change item
     """
 
     changing =0
     val =0
-    new_data = None
-    if not data_lst:
-        return (data_num, new_data)
+    new_item = None
+    if not item_lst:
+        return (item_num, new_item)
 
-    max_val = len(data_lst) -1
+    max_val = len(item_lst) -1
     if adding == 0:
         if step == -1:
             step = max_val
     else: # adding value
-        val = data_num + step
+        val = item_num + step
         changing =1
     if changing:
         step = limit_value(val, 0, max_val)
-    if data_num != step:
-        data_num = step
-        new_data = data_lst[data_num]
+    if item_num != step:
+        item_num = step
+        new_item = item_lst[item_num]
     else: # no change for menu num
         beep()
     
-    return (data_num, new_data)
+    return (item_num, new_item)
 
 #-------------------------------------------
 

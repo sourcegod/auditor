@@ -158,7 +158,8 @@ class InterfaceApp(object):
         
         if self.cacher is None or self.mixer is None: 
             return 
-        (mode_num, mode_item) = self.change_mode(self._mode_num, step, adding)
+        # (mode_num, mode_item) = self.change_mode(self._mode_num, step, adding)
+        (mode_num, mode_item) = uti.change_item(self._mode_num, self._mode_lst, step, adding)
         if self._mode_num != mode_num:
             self._mode_num = mode_num
             self.mixer.set_mix_mode(mode_num)
