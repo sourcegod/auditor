@@ -529,23 +529,20 @@ class AudiMixer(object):
                         buf1.resize(self._len_buf)
                         chan.set_active(0)
 
-                    if not mixing:
-                        # dont apply volume, effects ...
-                        continue
-
                     # avoid saturation
-                    buf1 *= self._vol_ratio
-                    if chan.is_vel():
-                        chan.process_vel(buf1)
-                   
-                    # verify whether there is a free place
-                    num = (num + 1) % len_buf_lst
-                    buf_lst[num] = buf1
-                    chan_num = num
-                    if chan_count < len_buf_lst:
-                        chan_count +=1
-                        # debug("voici i: %d et shape: %s" %(i, buf1.shape))
-        
+                    if mixing:
+                        buf1 *= self._vol_ratio
+                        if chan.is_vel():
+                            chan.process_vel(buf1)
+                       
+                        # verify whether there is a free place
+                        num = (num + 1) % len_buf_lst
+                        buf_lst[num] = buf1
+                        chan_num = num
+                        if chan_count < len_buf_lst:
+                            chan_count +=1
+                            # debug("voici i: %d et shape: %s" %(i, buf1.shape))
+            
         # out of the loop
         if buf1.size and not mixing:
             return buf1.tobytes()
