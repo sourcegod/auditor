@@ -366,7 +366,7 @@ class PortAudioDriver(BaseDriver):
 
         # data = self.read_buffers()
         if self._cache_lst:
-            data = self._cache_lst[0]
+            # data = self._cache_lst[0]
             # debug("Caching here...")
             self._cache_lst = []
         elif self._mixer:

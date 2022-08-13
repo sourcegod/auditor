@@ -93,7 +93,7 @@ class AudiStream(AudiSoundBase):
         start_pos = self.get_start_position(0) # in frames
         end_pos = self.get_end_position(0) # in frames
         try:
-            wav_data = self._wavfile.read(frames=nb_frames)
+            wav_data = self._wavfile.read(frames=nb_frames, dtype=np.float32)
         except RuntimeError as err:
             print(f"Error: unable to read stream file: {self._filename}")
             return

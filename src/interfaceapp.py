@@ -91,8 +91,8 @@ class InterfaceApp(object):
             self.cacher = self.mixer.cacher
         if self.audio_driver:
             self.gen_instru_from_conf()
-            # self.gen_channels()
-            # self.gen_instruments()
+            self.gen_channels()
+            self.gen_instruments()
             if self.cacher:
                 self.cacher.preload()
                 self.cacher.set_caching(1)
@@ -325,11 +325,16 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
-        id =1
+        last_index = len(self._instru_lst)
+        id = last_index
         # self._instru_lst = []
-        key0 = 36
-        chan_lst = self.mixer.get_channels()
-        snd_lst = self.mixer.get_sounds()
+        key0 = 36 + last_index
+        try:
+            chan_lst = self.mixer.get_channels()[last_index:]
+            snd_lst = self.mixer.get_sounds()[last_index:]
+        except IndexError:
+            chan_lst = []
+            snd_lst = []
 
         # print("len chan_lst: ", len(chan_lst), len(snd_lst))
         for (i, item) in enumerate(chan_lst):
@@ -342,6 +347,7 @@ class InterfaceApp(object):
             self._instru_lst.append(instru)
 
         
+        """
         for instru in self._instru_lst:
             if instru.key == 37:
                 instru.chan_mode =1 # mode continue
@@ -364,8 +370,7 @@ class InterfaceApp(object):
                 instru.chan_mode =0
                 instru.loop_mode =1
                 instru.loop_count =-1
-
-
+        """
     #-----------------------------------------
     
     def play_notes(self, m_type, m_note, m_vel):

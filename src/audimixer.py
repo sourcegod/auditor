@@ -557,6 +557,11 @@ class AudiMixer(object):
 
         if out_buf.size:
             # avoid copy
+            
+            """
+            time.sleep(1)
+            print("\a")
+            """
             return out_buf.tobytes()
         else: # out_buf  is empty
             return self._ret_buf
