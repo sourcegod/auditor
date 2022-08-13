@@ -339,7 +339,7 @@ class InterfaceApp(object):
         # print("len chan_lst: ", len(chan_lst), len(snd_lst))
         for (i, item) in enumerate(chan_lst):
             instru = InstruObj()
-            instru.id = i+1
+            instru.id = id + i
             instru.key = key0 +i
             if i < len(snd_lst): instru.snd = snd_lst[i]
             instru.chan = chan_lst[i]
@@ -347,30 +347,31 @@ class InterfaceApp(object):
             self._instru_lst.append(instru)
 
         
-        """
+        # """
         for instru in self._instru_lst:
-            if instru.key == 37:
+            if instru.key == key0 +1:
                 instru.chan_mode =1 # mode continue
-            if instru.key == 38:
+            if instru.key == key0 +2:
                 # instru.snd.set_loop_count(2)
                 instru.snd.set_loop_mode(1)
                 instru.chan_mode =1
                 instru.loop_mode =1
                 instru.loop_count =-1
 
-            if instru.key == 39: # reverse sound
+            if instru.key == key0 +3: # reverse sound
                 instru.snd.reverse()
 
 
-            if instru.key == 40: # no velocity
+            if instru.key == key0 +4: # no velocity
                 instru.m_vel =-1
                 instru.chan.set_vel(-1)
-            if instru.key == 41:
+            if instru.key == key0 +5:
                 instru.snd.set_loop_mode(1)
                 instru.chan_mode =0
                 instru.loop_mode =1
                 instru.loop_count =-1
-        """
+        # """
+
     #-----------------------------------------
     
     def play_notes(self, m_type, m_note, m_vel):
