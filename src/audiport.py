@@ -139,6 +139,25 @@ class BaseDriver(object):
         return self._out.get_default_output_device_info()
 
     #-----------------------------------------
+
+    def get_default_input_device(self):
+        """ return tuple containing indexes input for both channels  
+        from portaudio driver object
+        """
+
+        return self._out.get_default_input_device_info().get('defaultInputDevice')
+
+    #-----------------------------------------
+
+    def get_default_output_device(self):
+        """ return tuple containing indexes output for both channels  
+        from portaudio driver object
+        """
+
+        return self._out.get_default_input_device_info().get('defaultOutputDevice')
+
+    #-----------------------------------------
+
     
     def get_device_info_by_index(self, index):
         """ return dictionary containing info from portaudio driver object
@@ -283,6 +302,7 @@ class PortAudioDriver(BaseDriver):
         self._mixer = None
         self._out = pyaudio.PyAudio()
         self._running = False
+        self._initialized = False
 
     #------------------------------------------------------------------------------
 
@@ -293,6 +313,9 @@ class PortAudioDriver(BaseDriver):
         
         if self._out is None:
             self._out = pyaudio.PyAudio()
+
+        # default_output = self._out.get_default_host_api_info().get('defaultOutputDevice')
+        self._default_output_index = self.get_default_output_device()
         # self._out.get_format_from_width(self.wf.getsampwidth())
         self._format = pyaudio.paFloat32 # pyaudio.paInt16
         self._nchannels = nchannels
@@ -302,16 +325,43 @@ class PortAudioDriver(BaseDriver):
        
         # with callback
         # """
-        self._stream = self._out.open(format=self._format,
-                    channels=self._nchannels,
-                    rate=self._rate,
-                    input=False,
-                    output=True,
-                    input_device_index = self._input_device_index,
-                    output_device_index = self._output_device_index,
-                    frames_per_buffer=self._buf_size,
-                    start=False,
-                    stream_callback=self._audio_callback)
+        try:
+            self._stream = self._out.open(format=self._format,
+                        channels=self._nchannels,
+                        rate=self._rate,
+                        input=False,
+                        output=True,
+                        input_device_index = self._input_device_index,
+                        output_device_index = self._output_device_index,
+                        # output_device_index = default_output,
+                        frames_per_buffer=self._buf_size,
+                        start=False,
+                        stream_callback=self._audio_callback)
+            self._initialized = True
+        except OSError as err:
+            print("[PortAudio Error]: error to open output_index", err)
+            self._stream = None
+            self._initialized = False
+
+        if self._stream is None:
+            self._output_device_index = self._default_output_index
+            try:
+                self._stream = self._out.open(format=self._format,
+                            channels=self._nchannels,
+                            rate=self._rate,
+                            input=False,
+                            output=True,
+                            input_device_index = self._input_device_index,
+                            output_device_index = self._output_device_index,
+                            frames_per_buffer=self._buf_size,
+                            start=False,
+                            stream_callback=self._audio_callback)
+                self._initialized = True
+            except OSError as err:
+                print("[PortAudio Error]: error to open Default Output_index", err)
+                self._stream = None
+                self._initialized = False
+
         # """
 
         # with no callback
@@ -454,6 +504,7 @@ class PortAudioDriver(BaseDriver):
         from PortAudioDriver object
         """
 
+        if not self._initialized: return
         if not self._stream.is_active() or not self._running:
             self._stream.stop_stream()
             # if self.set_cache():
@@ -472,6 +523,7 @@ class PortAudioDriver(BaseDriver):
         from PortAudioDriver object
         """
 
+        if not self._initialized: return
         if self._running and self._stream:
             self._stream.stop_stream()
             print("\a")

@@ -184,7 +184,7 @@ class MainApp(object):
 
 if __name__ == "__main__":
     audio_driver = aup.PortAudioDriver()
-    output_index = 6 # None for default output port
+    output_index =6 # 6 # None for default output port
     app = MainApp()
     # app.init_app(audio_driver=audio_driver, output_index=output_index)
     curses.wrapper(app.main, audio_driver=audio_driver, output_index=output_index)
