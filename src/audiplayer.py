@@ -31,6 +31,7 @@ class AudiPlayer(object):
         if self.mixer:
             self._chan_lst = self.mixer.get_channels()
             self._snd_lst = self.mixer.get_sounds()
+            self._active_chan_dic = self.mixer.get_active_channels()
         
         """
         if self.mixer:
@@ -91,6 +92,8 @@ class AudiPlayer(object):
         play channel with associated sound
         from AudiPlayer object
         """
+
+        chan = None
         
         try:
             chan = self._chan_lst[chan_num]
@@ -110,12 +113,15 @@ class AudiPlayer(object):
         channel with associated sound
         from AudiPlayer object
         """
+
+        chan = None
         
         try:
-            self._chan_lst[chan_num].stop()
+            chan = self._chan_lst[chan_num]
+            chan.stop()
         except IndexError:
-            return
-
+            return False
+        
         return True
 
     #-----------------------------------------

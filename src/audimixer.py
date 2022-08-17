@@ -223,8 +223,23 @@ class AudiRoll(object):
 #========================================
 
 class AudiMixer(object):
-    """ Mixer object to manage channels """
+    """ Singleton object
+    Mixer object to manage channels 
+    """
+    __single_instance = None
+    @staticmethod
+    def get_instance():
+        """ Static access method """
+        if AudiMixer.__single_instance is None:
+            AudiMixer()
+        return AudiMixer.__single_instance
+
     def __init__(self, audio_driver=None):
+        if AudiMixer.__single_instance != None:
+            raise exception("This Klass is a singleton klass.")
+        else:
+            AudiMixer.__single_instance = self
+        
         # self._audio_driver = AlsaAudioDriver()
         # self.audio_driver = aup.PortAudioDriver()
         self.audio_driver = audio_driver
@@ -235,6 +250,8 @@ class AudiMixer(object):
         self._chan = None
         self._sound = None
         self._snd_num =0
+        self._active_chan_dic = {}
+        self.last_chan = None
         self._thr_audio = None
         # must be the same as buf_size in PortAudio Driver
         self._buf_size =512
@@ -450,8 +467,9 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-    def get_buf_data(self): 
+    def get_buf_data_0(self): 
         """ 
+        Deprecated function, keeping for benchmark
         Only read audio data 
         from AudiMixer object
         """
@@ -481,6 +499,7 @@ class AudiMixer(object):
 
 
         for (i, chan) in enumerate(chan_lst):
+            print("\a")
             if chan.is_active():
                 snd = chan.get_sound()
                 if not snd: 
@@ -567,7 +586,143 @@ class AudiMixer(object):
             return self._ret_buf
 
     #-----------------------------------------
+
+    def get_buf_data(self): 
+        """ 
+        2nd version for benchmark
+        Only read audio data 
+        from AudiMixer object
+        """
+        
+        # take less place in memory
+        nb_virchan =16
+        buf_lst = [None] * nb_virchan
+        buf1 = np.array([], dtype=np.float32)
+        out_buf = np.array([], dtype=self._out_type)
+        # debug("je pass ici")
+        chan_num =0
+        chan_count =0
+        # use of local variable to optimizing lookup attributes and functions
+        chan_lst = self._chan_lst
+        active_chan_dic = self._active_chan_dic
+        cacher = self.cacher
+        len_cache = cacher.len_cache
+        ca_get_data = cacher.get_data
+        ca_get_pos = cacher.get_pos
+        ca_set_pos = cacher.set_pos
+        ca_is_caching = cacher.is_caching
+        ca_nb_buf = cacher.nb_buf
+        ca_nb_frames = cacher.nb_frames
+        cached = False
+        len_buf_lst = len(buf_lst)
+        num = -1 # for index of buf_lst
+        mixing = self._mixing
+
+
+        # efficient way to delete item in dictionnary while iterating
+        for key in list(active_chan_dic.keys()):
+        # for (i, chan) in enumerate(chan_lst):
+            # print("\a")
+            if not mixing:
+                # TODO: keeping only one channel in the dic
+                # Not satisfying
+                chan = self.last_chan
+                # key = key_lst[-1]
+                # print(f"voici key: {key}, dic: {active_chan_dic}\n")
+            else:
+                chan = active_chan_dic[key]
+            i = chan.id
+            if chan.is_active():
+                snd = chan.get_sound()
+                if not snd: 
+                    chan.set_active(0)
+                    del active_chan_dic[chan.id]
+                    continue
+                curpos = snd.get_position(0) # in frames
+                endpos = snd.get_end_position(0) # in frames
+                
+                if ca_is_caching() and i < len_cache: 
+                    cache_pos = ca_get_pos(i)
+                    if curpos == 0:
+                        # print("\a", file=sys.stderr)
+                        ca_set_pos(i, 0)
+                        buf1 = np.copy(ca_get_data(i))
+                        snd.set_position(cacher.nb_frames)
+                        cached = True
+                        # print(f"its caching... curpos: {curpos}")
                     
+                    elif cache_pos < ca_nb_buf:
+                        buf1 = np.copy(ca_get_data(i))
+                        # snd.set_position(curpos + self._buf_size)
+                        cached = True
+                        # print(f"its caching... buf_pos: {cacher.buf_pos}, curpos: {curpos}")
+                
+                # curpos+1 for flac format where last curpos is = endpos -1
+                if curpos+1 >= endpos:
+                    # debug("curpos >= endpos: %d, %d" %(curpos, endpos))
+                    snd.loop_manager()
+                    if not snd.is_looping():
+                        chan.set_active(0)
+                        del active_chan_dic[chan.id]
+                        continue
+                   
+                # whether buf_size =512 frames, so buf =512*4 = 2048 bytes
+                # cause buf in byte, one frame = 4 bytes, 2 signed short, 
+                # for 16 bits, 2 channels, 44100 rate,
+                
+                if not cached:
+                    buf1 = snd.read_data(self._buf_size)
+                if not buf1.size:
+                    debug("not buf1")
+                    chan.set_active(0)
+                    snd.set_play_count(0)
+                    del active_chan_dic[chan.id]
+                    continue
+                else: # whether buf1 have size
+                    if len(buf1) < self._len_buf:
+                        buf1.resize(self._len_buf)
+                        chan.set_active(0)
+                        del active_chan_dic[chan.id]
+
+                    # avoid saturation
+                    if mixing:
+                        buf1 *= self._vol_ratio
+                        if chan.is_vel():
+                            chan.process_vel(buf1)
+                       
+                        # verify whether there is a free place
+                        num = (num + 1) % len_buf_lst
+                        buf_lst[num] = buf1
+                        chan_num = num
+                        if chan_count < len_buf_lst:
+                            chan_count +=1
+                            # debug("voici i: %d et shape: %s" %(i, buf1.shape))
+            
+        # out of the loop
+        if buf1.size and not mixing:
+            return buf1.tobytes()
+        if chan_count == 0: # no more audio data
+            # maintaining the audio callback alive
+            return self._ret_buf
+        elif chan_count == 1: # no copy data
+            out_buf = buf_lst[chan_num] 
+            return out_buf.tobytes()
+        elif chan_count >= 2:
+            out_buf = self._mix_buf_data(chan_count, buf_lst)
+
+        if out_buf.size:
+            # avoid copy
+            
+            """
+            time.sleep(1)
+            print("\a")
+            """
+            return out_buf.tobytes()
+        else: # out_buf  is empty
+            return self._ret_buf
+
+    #-----------------------------------------
+                          
     def _mix_buf_data(self, chan_count, buf_lst):
         """
         mixing audio data list
@@ -813,6 +968,17 @@ class AudiMixer(object):
         return self._chan_lst
 
     #-----------------------------------------
+
+    def  get_active_channels(self):
+        """
+        returns actives channels dic
+        from AudiMixer object
+        """
+
+        return self._active_chan_dic
+
+    #-----------------------------------------
+
 
     def get_sound_by_id(self, index):
         """

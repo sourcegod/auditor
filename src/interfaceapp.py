@@ -275,7 +275,7 @@ class InterfaceApp(object):
         snd10 = self.mixer.create_sample(fname8)
 
         for i in range(10):
-            self.mixer.create_channel(i)
+            self.mixer.create_channel()
             # chan1.set_volume(16)
             # chan1.set_panning(127, 0)
             pass

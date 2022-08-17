@@ -6,6 +6,8 @@ File: audichannel.py:
     Author: Coolbrother
 """
 import numpy as np
+import audimixer as aumix
+
 class DspEffect(object):
     """ effect manager """
     def __init__(self):
@@ -89,15 +91,16 @@ class AudiChannel(DspEffect):
     def __init__(self, id=-1):
         DspEffect.__init__(self)
         if id >= 0:
-            self._id = id
+            self.id = id
         else:
-            self._id = AudiChannel._id
+            self.id = AudiChannel._id
         AudiChannel._id +=1
         self._sound = None
         self._playing =0
         self._paused =0
         self._active =0
         self._mix_callback = None
+        self._mixer = aumix.AudiMixer.get_instance()
         self._maxvol =128.0
         self._maxvel = 128.0 # velocity
         self._volume =1 # self._maxvol / self._maxvol
@@ -108,6 +111,7 @@ class AudiChannel(DspEffect):
         self._leftmute =1 # for left channel mute
         self._rightmute =1 # for right channel mute
         self._vel =1
+        self._active_chan_dic = self._mixer._active_chan_dic
 
     #-----------------------------------------
 
@@ -140,7 +144,8 @@ class AudiChannel(DspEffect):
         # loops -1: infinitly
         # 0: no looping mode
         if snd is None: return
-        self.stop() # stop previus sound
+        if self._playing:
+            self.stop() # stop previus sound
         self._sound = snd
         self._sound.set_loop_count(loops)
         # self._sound.set_loop_mode(1)
@@ -149,6 +154,8 @@ class AudiChannel(DspEffect):
         self._sound.set_position(start_pos)
         # self._sound.active =1
         self._active =1
+        self._active_chan_dic[self.id] = self
+        self._mixer.last_chan = self
         self._playing =1
         self._paused =0
         if self._mix_callback:
@@ -167,6 +174,10 @@ class AudiChannel(DspEffect):
             if not closing:
                 self._sound.set_position(0)
         self._active =0
+        try:
+            del self._active_chan_dic[self.id]
+        except KeyError:
+            pass
         self._playing =0
         self._paused =0
 
