@@ -1,9 +1,65 @@
 Changelog for Auditor Engine
 Date: Sun, 17/07/2022
-Last update: Sat, 06/08/2022
+Last update: Sun, 21/08/2022
 
-Date: Sat, 06/08/2022
+-- Version 0.11
+Date: Sun, 21/08/2022
+-- Adding new (get_buf_data function) with dictionnary managment
+for active channels, keeping old (get_buf_data0) for test performance.
+
+-- Updating AudiPort class: (in init_audio in AudiPort class), change output port index
+to default output index, if error occured when opening port, and adding
+functions: 
+(get_default_input_device, get_default_output_device, in
+AudiPort Class)
+
+-- Updating: (InterfaceApp.gen_instruments, and gen_channels) to load custom
+sounds out of configuration file.
+
+-- Updating: (AudiStream.read_data function) to read frames in (float32)
+by default, and adding, customed instruments and sounds, in (InterfaceApp
+class)
+
+-- Fixing bugs: (in get_buf_data in AudiMixer class) when not mixing,
+not continue sound anyway.
+
+-- Adding functions: (get_key0, select_key0 on InterfaceApp class), and
+
+-- Adding support for keyboard key to play all channels by changing the
+range key with (Plus or Minus key in MainApp class)
+
+-- Adding: (change_data function in utils.py module)
+-- Adding: (play_mode function in InterfaceApp class), adding new player
+mode (No Mix No Cache by Channel), and fixing bugs in (get_buf_data in
+AudiMixer class)
+
+-- Adding functions: (get_buf_data, _mix_data in AudiMixer class) and
+separate these functions from (get_mix_data which is now deprecated)
+
+-- Updating: (get_mix_data in AudiMixer class), replacing (AudiRoll class)
+by simple index count, for less attribute lookup
+
+-- Updating file: (audiconf.py and interfaceapp.py) to support (layer tag
+in drumkit.xml) when (filename tag) is not available in newest version
+of drumkit.
+
+-- Adding: temporary function (get_sound_cache_data in AudiMixer class)
+to test Sound and Cache with no mixing.
+
+-- Updating: (PortAudio driver) to send output buffer in (float32), to
+avoid multiple convertion in (int16), 
+and adding function: (set_mix_mode,
+get_sound_data, get_cache_data in AudiMixer class)
+
+-- Adding functions: (get_mode_num, change_mode, select_mode in InterfaceApp
+class), and adding multiple player mode: (with Mix with Cache, with Mix
+No Cache, ... with Cache only).
+
+-- Adding: (gen_instru_from_conf function in InterfaceApp class)
+
+
 -- Version 0.10
+Date: Sat, 06/08/2022
 -- Adding classes:
 AudiCache, AudiPlayer.
 -- Adding functions:
