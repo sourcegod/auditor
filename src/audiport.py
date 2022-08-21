@@ -41,6 +41,9 @@ class BaseDriver(object):
         self._driver_index = None # equiv to host api
         self._input_device_index = None
         self._output_device_index = None
+        self.audio_callback = None
+        self.flag_ok = pyaudio.paContinue
+
 
 
     #------------------------------------------------------------------------------
@@ -336,7 +339,7 @@ class PortAudioDriver(BaseDriver):
                         # output_device_index = default_output,
                         frames_per_buffer=self._buf_size,
                         start=False,
-                        stream_callback=self._audio_callback)
+                        stream_callback=self.audio_callback)
             self._initialized = True
         except OSError as err:
             print("[PortAudio Error]: error to open output_index", err)
@@ -355,7 +358,7 @@ class PortAudioDriver(BaseDriver):
                             output_device_index = self._output_device_index,
                             frames_per_buffer=self._buf_size,
                             start=False,
-                            stream_callback=self._audio_callback)
+                            stream_callback=self.audio_callback)
                 self._initialized = True
             except OSError as err:
                 print("[PortAudio Error]: error to open Default Output_index", err)
@@ -407,7 +410,18 @@ class PortAudioDriver(BaseDriver):
 
     #-----------------------------------------
 
-    def _audio_callback(self, in_data, frame_count, time_info, status):
+    def set_callback(self, cback):
+        """
+        set the audio callback
+        from AudiPort object
+        """
+        
+        self.audio_callback = cback
+
+    #-----------------------------------------
+
+
+    def _audio_callback0(self, in_data, frame_count, time_info, status):
         """ callback calling by portaudio
         """
 

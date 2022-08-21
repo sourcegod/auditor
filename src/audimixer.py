@@ -291,6 +291,7 @@ class AudiMixer(object):
         self._ret_buf = np.zeros((self._len_buf,), dtype=self._out_type).tobytes()
 
         if self.audio_driver:
+            self.audio_driver.set_callback(self._audio_callback)
             self.audio_driver.init_audio(nchannels, rate, format)
             self.audio_driver.set_mixer(self)
         # create cache data
@@ -305,8 +306,29 @@ class AudiMixer(object):
         self.chan_beep = None
     
     #-----------------------------------------
-     
-    def get_mix_data0(self): 
+
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """ 
+        Audio callback calling by the audio driver
+        from AudiMixer object
+        """
+
+        data =None
+        # flag = pyaudio.paContinue
+        flag_ok = self.audio_driver.flag_ok
+
+        data =  self.cur_func()
+        if data is None:
+            debug("Data is None", data)
+        else:
+            # debug(f"Data Len: {len(data)}") 
+            pass
+        
+        return (data, flag_ok)
+
+    #-----------------------------------------
+      
+    def _get_mix_data0(self): 
         """ 
         Deprecated function, savint it for performance test
         mixing audio data 
