@@ -619,18 +619,16 @@ class AudiMixer(object):
         mixing = self._mixing
 
 
+        # Whether not mixing, keeping the last active channel
+        if not mixing and len(active_chan_dic) >= 2:
+            active_chan_dic.clear()
+            active_chan_dic[self.last_chan.id] = self.last_chan
+        
         # efficient way to delete item in dictionnary while iterating
         for key in list(active_chan_dic.keys()):
         # for (i, chan) in enumerate(chan_lst):
             # print("\a")
-            if not mixing:
-                # TODO: keeping only one channel in the dic
-                # Not satisfying
-                chan = self.last_chan
-                # key = key_lst[-1]
-                # print(f"voici key: {key}, dic: {active_chan_dic}\n")
-            else:
-                chan = active_chan_dic[key]
+            chan = active_chan_dic[key]
             i = chan.id
             if chan.is_active():
                 snd = chan.get_sound()
