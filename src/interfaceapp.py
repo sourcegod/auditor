@@ -353,8 +353,9 @@ class InterfaceApp(object):
                 instru.chan_mode =1 # mode continue
             if instru.key == key0 +2:
                 # instru.snd.set_loop_count(2)
-                instru.snd.set_loop_mode(1)
+                # instru.snd.set_loop_mode(1)
                 instru.chan_mode =1
+                instru.chan.set_looping(True)
                 instru.loop_mode =1
                 instru.loop_count =-1
 

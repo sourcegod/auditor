@@ -138,7 +138,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
     """ sample manager """
     def __init__(self, mode=0, filename="", bits=16, rate=44100, channels=2, nbsamples=1):
         super(AudiSample, self).__init__()
-        self.sound_type =1 # type sample
+        self.sound_type =0 # type sample
         if mode == 0 and filename: # load sample from file
             self.load(filename)
         elif mode == 1: # create empty sample
@@ -437,7 +437,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             self._wav_data = self._wav_data[::-1]
         
     #-----------------------------------------
-    def get_data(self):
+    def get_data(self, nb_frames=0):
         """
         returns numpy data
         from AudiSample object

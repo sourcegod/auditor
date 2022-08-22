@@ -15,6 +15,7 @@ class AudiStream(AudiSoundBase):
     """ stream manager """
     def __init__(self, filename=""):
         super(AudiStream, self).__init__()
+        self.sound_type =1 # type stream
         if filename:
             self.load(filename)
     
@@ -180,7 +181,23 @@ class AudiStream(AudiSoundBase):
         self._curpos = pos
     
     #-----------------------------------------
+    
+    def  get_data(self, nb_frames=0):
+        """
+        temporary function
+        from AudiStream object
+        """
 
+        try:
+            self._buf_arr = self._wavfile.read(frames=nb_frames, dtype=np.float32)
+        except RuntimeError as err:
+            print(f"Error: unable to read stream file: {self._filename}")
+            return
+
+
+        return self._buf_arr
+
+    #-----------------------------------------
 
 #========================================
 

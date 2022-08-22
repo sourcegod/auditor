@@ -13,6 +13,7 @@ class AudiSoundBase(object):
         """
         """
         super(AudiSoundBase, self).__init__()
+        self.sound_type =0 # type Sample
         self._filename = ""
         self._id = id
         self._wavfile = None
@@ -290,6 +291,7 @@ class AudiSoundBase(object):
         if mode == 1:
             if self._loop_start == 0 and self._loop_end == 0:
                 self.set_loop_points(0, self._length, 0) # in frames
+            self.set_loop_count(-1) # infinite loop
         
         self._loop_mode = mode
         self.loop_manager()
