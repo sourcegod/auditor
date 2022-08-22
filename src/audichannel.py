@@ -510,7 +510,7 @@ class AudiChannel(DspEffect):
                 pos += 1
         else:
             return
-             
+        data *= vol_ratio     
         self._curpos = pos
         # print("\a")
 
