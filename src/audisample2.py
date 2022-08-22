@@ -437,7 +437,17 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             self._wav_data = self._wav_data[::-1]
         
     #-----------------------------------------
-     
+    def get_data(self):
+        """
+        returns numpy data
+        from AudiSample object
+        """
+
+        return self._wav_data
+
+    #------------------------------------------------------------------------------
+
+ 
     def get_raw_list(self):
         """
         returns the sound raw data

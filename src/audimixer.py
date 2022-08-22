@@ -313,18 +313,16 @@ class AudiMixer(object):
         from AudiMixer object
         """
 
-        data =None
+        # init data
+        data = np.zeros((self._len_buf, ), dtype=self._out_type)
         # flag = pyaudio.paContinue
         flag_ok = self.audio_driver.flag_ok
+        channels = self._active_chan_dic
+        # print(f"frame_count: {frame_count}")
+        for chan in list(channels.values()):
+            chan.write_sound_data(data, frame_count)
 
-        data =  self.cur_func()
-        if data is None:
-            debug("Data is None", data)
-        else:
-            # debug(f"Data Len: {len(data)}") 
-            pass
-        
-        return (data, flag_ok)
+        return (data.tobytes(), flag_ok)
 
     #-----------------------------------------
       

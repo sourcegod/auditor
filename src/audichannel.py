@@ -112,6 +112,9 @@ class AudiChannel(DspEffect):
         self._rightmute =1 # for right channel mute
         self._vel =1
         self._active_chan_dic = self._mixer._active_chan_dic
+        self._curpos =0
+        self._vol_ratio = 0.5
+
 
     #-----------------------------------------
 
@@ -144,15 +147,21 @@ class AudiChannel(DspEffect):
         # loops -1: infinitly
         # 0: no looping mode
         if snd is None: return
+        
         if self._playing:
-            self.stop() # stop previus sound
+            self.stop() # stop previous sound
+
         self._sound = snd
+        
+        """
         self._sound.set_loop_count(loops)
         # self._sound.set_loop_mode(1)
         self._sound.loop_manager()
         start_pos = self._sound.get_start_position(0) # in frames
         self._sound.set_position(start_pos)
         # self._sound.active =1
+        """
+        
         self._active =1
         self._active_chan_dic[self.id] = self
         self._mixer.last_chan = self
@@ -178,6 +187,8 @@ class AudiChannel(DspEffect):
             del self._active_chan_dic[self.id]
         except KeyError:
             pass
+        self._sound = None
+        self._curpos =0
         self._playing =0
         self._paused =0
 
@@ -466,6 +477,43 @@ class AudiChannel(DspEffect):
          
         return wavebuf
     
+    #-----------------------------------------
+
+    def write_sound_data(self, data, count):
+        """
+        write buffer sound in data
+        from AudiChannel object
+        """
+
+        sound = self._sound
+        if sound is None: return
+        sound_data = sound.get_data()
+        len_sound = sound.get_length() # in frames
+        pos = self._curpos
+        vol_ratio = self._vol_ratio
+        # print(f"curpos: {self._curpos}, len_sound: {len_sound}")
+        if pos >= len_sound: 
+            self.stop()
+            return
+        if sound._nchannels == 1:
+            for i in range (count):
+                if pos >= len_sound: break
+                data[2*i] += sound_data[pos] # * vol_ratio
+                data[2*i+1] += sound_data[pos] # * vol_ratio
+                pos += 1
+        elif sound._nchannels == 2:
+            for i in range (count):
+                if pos >= len_sound: 
+                    break
+                data[2*i] +=  sound_data[2*pos] # * vol_ratio
+                data[2*i+1] += sound_data[2*pos+1] # * vol_ratio
+                pos += 1
+        else:
+            return
+             
+        self._curpos = pos
+        # print("\a")
+
     #-----------------------------------------
 
 
