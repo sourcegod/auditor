@@ -9,6 +9,7 @@
 
 import os, sys
 from os import path
+import numpy as np
 import audimixer as aumix
 import audiplayer as aupl
 import midutils as mid
@@ -72,6 +73,8 @@ class InterfaceApp(object):
                 ]
         self._key_num =0
         self._key_lst = range(0, 61, 10)
+        self._pitch_num =0
+
 
     #-----------------------------------------
     
@@ -221,23 +224,30 @@ class InterfaceApp(object):
 
     #-------------------------------------------
 
-    def play_mode(self, num):
+    def change_pitch(self, step=0, adding=0):
         """
-        play belong mode number by channel or sound number
+        change pitch item
         from InterfaceApp object
         """
+        
+        if self.mixer is None: return
+        chan = self.mixer.get_last_chan()
+        if chan:
+            pitch_num = chan.get_pitch()
+            pitch_num += step
+            chan.set_pitch(pitch_num)
+        
+       
+        if chan:
+            pitch_num = chan.get_pitch()
+            msg = f"Pitch {pitch_num}, on channel {chan.id}"
+        else:
+            msg = f"No pitch on No channel"
 
-        if not self.player: return
-        mode_num = self._mode_num
-        if mode_num in (0, 1, 2, 3):
-            self.player.play_channel(num, num)
-        elif mode_num == 4: # play sound only
-            self.player.play_sound(num)
-        elif mode_num == 5: # play cache only
-            self.player.play_cache(num)
+        if self._parent:
+            self._parent.display(msg)
 
     #-------------------------------------------
-
 
 
     def gen_channels(self):
@@ -357,6 +367,7 @@ class InterfaceApp(object):
                 instru.chan_mode =1
                 instru.chan.set_looping(True)
                 instru.chan.set_volume(0.3)
+                # instru.chan.set_pitch(0.5)
                 instru.loop_mode =1
                 instru.loop_count =-1
 

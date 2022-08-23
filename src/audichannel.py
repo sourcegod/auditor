@@ -115,6 +115,8 @@ class AudiChannel(DspEffect):
         self._curpos =0
         self._looping = False
         self._vol_mix = 0.5 # mix saturation volume
+        self._pitch = 1.0
+
 
     #-----------------------------------------
 
@@ -503,6 +505,26 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
+    def get_pitch(self):
+        """
+        returns channel pitch
+        from AudiChannel
+        """
+       
+        return self._pitch
+
+    #-----------------------------------------
+
+    def set_pitch(self, pitch):
+        """
+        set the channel pitch
+        from AudiChannel object
+        """
+
+        self._pitch = uti.limit_value(pitch, 0.25, 4.0)
+
+    #-----------------------------------------
+
     def write_sound_data(self, data, count):
         """
         write buffer sound in data
@@ -511,11 +533,11 @@ class AudiChannel(DspEffect):
 
         # print(f"voici count: {count}, len_data: {len(data)}")
         vol = self._volume * self._vol_mix
+        pitch = self._pitch
         sound = self._sound
         if sound is None: return
         sound_data = sound.get_data()
         len_sound = sound.get_length() # in frames
-        pitch = 0.5
         pos = self._curpos
         # print(f"curpos: {self._curpos}, len_sound: {len_sound}")
         if pos >= len_sound: 
@@ -533,7 +555,7 @@ class AudiChannel(DspEffect):
                     val = sound_data[int(pos)] * vol
                     data[i] += val #
                     data[i+1] += val #
-                    pos += 1
+                    pos += pitch
             elif sound._nchannels == 2:
                 for i in range (0, count, 2):
                     if pos >= len_sound: 
@@ -542,7 +564,7 @@ class AudiChannel(DspEffect):
                     data[i] += val
                     val = sound_data[2*int(pos)+1] * vol
                     data[i+1] +=  val
-                    pos += 1
+                    pos += pitch
             else:
                 return
         else: # Stream Sound type

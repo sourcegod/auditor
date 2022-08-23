@@ -998,6 +998,15 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
+    def get_last_chan(self):
+        """
+        returns last channel
+        from AudiMixer object
+        """
+
+        return self.last_chan
+
+    #-----------------------------------------
 
     def get_sound_by_id(self, index):
         """
