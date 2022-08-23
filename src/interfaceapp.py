@@ -356,6 +356,7 @@ class InterfaceApp(object):
                 # instru.snd.set_loop_mode(1)
                 instru.chan_mode =1
                 instru.chan.set_looping(True)
+                instru.chan.set_volume(0.3)
                 instru.loop_mode =1
                 instru.loop_count =-1
 

@@ -7,7 +7,7 @@ File: audichannel.py:
 """
 import numpy as np
 import audimixer as aumix
-
+import utils as uti
 class DspEffect(object):
     """ effect manager """
     def __init__(self):
@@ -114,7 +114,6 @@ class AudiChannel(DspEffect):
         self._active_chan_dic = self._mixer._active_chan_dic
         self._curpos =0
         self._looping = False
-        self._vol =1 # channel volume
         self._vol_mix = 0.5 # mix saturation volume
 
     #-----------------------------------------
@@ -297,7 +296,10 @@ class AudiChannel(DspEffect):
     #-----------------------------------------
 
     def limit_value(self, lim_left, lim_right, val):
+
         """ 
+        Deprecated function.
+        Use the one in utils module instead
         returns value beetwen lim_left, lim_right
         from AudiChannel object
         """
@@ -318,8 +320,12 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def get_volume(self):
-        # return channel volume
+    def get_volume0(self):
+        """
+        returns channel volume
+        from AudiChannel
+        """
+
         """
         mute =0 # for both channel side
         if self._muted:
@@ -338,10 +344,7 @@ class AudiChannel(DspEffect):
         from AudiChannel object
         """
 
-        self._volume = self.limitvalue(-1, self._maxvol, vol)
-        if self._volume >=0:
-            self._volume /= self._maxvol
-        # self._dsp_lst.append('dsp_001') # volume effect id
+        self._volume = uti.limit_value(vol, 0.0, 1.0)
 
     #-----------------------------------------
 
@@ -500,29 +503,6 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def get_volume(self):
-        """
-        returns the channel volume
-        from AudiChannel
-        """
-
-        return self._vol
-
-    #-----------------------------------------
-
-    def set_volume(self, vol=1):
-        """
-        set the channel volume
-        from AudiChannel
-        """
-
-        if vol <0: vol =0.0
-        elif vol > 1: vol = 1.0
-        
-        self._vol = vol
-
-    #-----------------------------------------
-
     def write_sound_data(self, data, count):
         """
         write buffer sound in data
@@ -530,7 +510,7 @@ class AudiChannel(DspEffect):
         """
 
         # print(f"voici count: {count}, len_data: {len(data)}")
-        vol = self._vol * self._vol_mix
+        vol = self._volume * self._vol_mix
         sound = self._sound
         if sound is None: return
         sound_data = sound.get_data()
