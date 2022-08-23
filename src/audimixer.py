@@ -314,13 +314,14 @@ class AudiMixer(object):
         """
 
         # init data
-        data = np.zeros((self._len_buf, ), dtype=self._out_type)
+        len_buf = self._len_buf
+        data = np.zeros((len_buf, ), dtype=self._out_type)
         # flag = pyaudio.paContinue
         flag_ok = self.audio_driver.flag_ok
         channels = self._active_chan_dic
         # print(f"frame_count: {frame_count}")
         for chan in list(channels.values()):
-            chan.write_sound_data(data, frame_count)
+            chan.write_sound_data(data, len_buf)
 
         return (data.tobytes(), flag_ok)
 

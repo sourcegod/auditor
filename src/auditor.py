@@ -78,6 +78,7 @@ class MainApp(object):
             key = self.win.getch() # pauses until a key's hit
             if key >=48 and key <=57:
                 num = key -48
+
                 num += key0
                 if num < len_chan_lst:
                     self.iap.play_mode(num)
