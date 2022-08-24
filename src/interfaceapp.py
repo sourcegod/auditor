@@ -73,7 +73,6 @@ class InterfaceApp(object):
                 ]
         self._key_num =0
         self._key_lst = range(0, 61, 10)
-        self._pitch_num =0
 
 
     #-----------------------------------------
@@ -224,25 +223,25 @@ class InterfaceApp(object):
 
     #-------------------------------------------
 
-    def change_pitch(self, step=0, adding=0):
+    def change_speed(self, step=0, adding=0):
         """
-        change pitch item
+        change speed item
         from InterfaceApp object
         """
         
         if self.mixer is None: return
         chan = self.mixer.get_last_chan()
         if chan:
-            pitch_num = chan.get_pitch()
-            pitch_num += step
-            chan.set_pitch(pitch_num)
+            speed_num = chan.get_speed()
+            speed_num += step
+            chan.set_speed(speed_num)
         
        
         if chan:
-            pitch_num = chan.get_pitch()
-            msg = f"Pitch {pitch_num}, on channel {chan.id}"
+            speed_num = chan.get_speed()
+            msg = f"speed {speed_num}, on channel {chan.id}"
         else:
-            msg = f"No pitch on No channel"
+            msg = f"No speed on No channel"
 
         if self._parent:
             self._parent.display(msg)
@@ -367,7 +366,7 @@ class InterfaceApp(object):
                 instru.chan_mode =1
                 instru.chan.set_looping(True)
                 instru.chan.set_volume(0.3)
-                # instru.chan.set_pitch(0.5)
+                # instru.chan.set_speed(0.5)
                 instru.loop_mode =1
                 instru.loop_count =-1
 

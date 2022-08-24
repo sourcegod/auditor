@@ -46,8 +46,8 @@ class DspEffect(object):
     #-----------------------------------------
 
 
-    def dsp_pitch(self, wavebuf, val=32):
-        # set pitch shifting
+    def dsp_speed(self, wavebuf, val=32):
+        # set speed shifting
         max_val =32
         lst = []
         try:
@@ -67,7 +67,7 @@ class DspEffect(object):
         
         lst = []
         """
-        # make a pitch
+        # make a speed
         try:
             for i in range(0, len(wavebuf), 16):
                 lst0 = wavebuf[i:i+8]
@@ -115,7 +115,7 @@ class AudiChannel(DspEffect):
         self._curpos =0
         self._looping = False
         self._vol_mix = 0.5 # mix saturation volume
-        self._pitch = 1.0
+        self._speed = 1.0
 
 
     #-----------------------------------------
@@ -505,26 +505,38 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def get_pitch(self):
+    def get_speed(self):
         """
-        returns channel pitch
+        returns channel speed
         from AudiChannel
         """
        
-        return self._pitch
+        return self._speed
 
     #-----------------------------------------
 
-    def set_pitch(self, pitch):
+    def set_speed(self, speed):
         """
-        set the channel pitch
+        set the channel speed
         from AudiChannel object
         """
 
-        self._pitch = uti.limit_value(pitch, 0.25, 4.0)
+        self._speed = uti.limit_value(speed, 0.25, 4.0)
 
     #-----------------------------------------
 
+    def linear_interpolation(self, val_a, val_b, val):
+        """
+        Linear Interpolation formula, for speed modulation
+        """
+        
+        # Notes:
+        # return val_a * (1 - val) + val * val_b
+        # return val_a + ((val_b - val_a) * val)
+        return val_a + (val * (val_b - val_a))
+
+    #-----------------------------------------
+    
     def write_sound_data(self, data, count):
         """
         write buffer sound in data
@@ -533,7 +545,7 @@ class AudiChannel(DspEffect):
 
         # print(f"voici count: {count}, len_data: {len(data)}")
         vol = self._volume * self._vol_mix
-        pitch = self._pitch
+        speed = self._speed
         sound = self._sound
         if sound is None: return
         sound_data = sound.get_data()
@@ -555,7 +567,7 @@ class AudiChannel(DspEffect):
                     val = sound_data[int(pos)] * vol
                     data[i] += val #
                     data[i+1] += val #
-                    pos += pitch
+                    pos += speed
             elif sound._nchannels == 2:
                 for i in range (0, count, 2):
                     if pos >= len_sound: 
@@ -564,7 +576,7 @@ class AudiChannel(DspEffect):
                     data[i] += val
                     val = sound_data[2*int(pos)+1] * vol
                     data[i+1] +=  val
-                    pos += pitch
+                    pos += speed
             else:
                 return
         else: # Stream Sound type

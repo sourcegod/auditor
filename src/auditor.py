@@ -93,9 +93,9 @@ class MainApp(object):
             elif key == '.':
                 self.player.stop_all()
             elif key == 'f':
-                self.iap.change_pitch(step=0.25, adding=1)
+                self.iap.change_speed(step=0.25, adding=1)
             elif key == 'F':
-                self.iap.change_pitch(step=-0.25, adding=1)
+                self.iap.change_speed(step=-0.25, adding=1)
 
             elif key in ('g', 'h',
                     'i', 'j', 'k', 
