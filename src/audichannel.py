@@ -550,40 +550,52 @@ class AudiChannel(DspEffect):
         if sound is None: return
         sound_data = sound.get_data()
         len_sound = sound.get_length() # in frames
-        pos = self._curpos
+        wav_pos = self._curpos
         # print(f"curpos: {self._curpos}, len_sound: {len_sound}")
-        if pos >= len_sound: 
+        # wav_pos +2? for Linear Interpolation in stereo sound
+        if wav_pos +2 >= len_sound: 
             if self._looping:
                 self._curpos =0
-                pos = self._curpos
+                wav_pos = self._curpos
             else:
                 self.stop()
                 return
         
         if sound.sound_type == 0: # Sample type
-            if sound._nchannels == 1:
                 for i in range (0, count, 2):
-                    if pos >= len_sound: break
-                    val = sound_data[int(pos)] * vol
-                    data[i] += val #
-                    data[i+1] += val #
-                    pos += speed
-            elif sound._nchannels == 2:
-                for i in range (0, count, 2):
-                    if pos >= len_sound: 
-                        break
-                    val = sound_data[2*int(pos)] * vol
-                    data[i] += val
-                    val = sound_data[2*int(pos)+1] * vol
-                    data[i+1] +=  val
-                    pos += speed
-            else:
-                return
+                    pos = int(wav_pos)
+                    frac_pos = wav_pos - pos
+                    if sound._nchannels == 1:
+                        if wav_pos + 1 >= len_sound: break
+                        if speed != 1.0:
+                            # print("\a")
+                            # Linear Interpolation
+                            val = (sound_data[pos] + frac_pos * (sound_data[pos+1] - sound_data[pos])) * vol
+                            data[i] += val
+                            data[i+1] += val #
+                        else:
+                            val = sound_data[pos] * vol
+                            data[i] += val #
+                            data[i+1] += val #
+
+                    elif sound._nchannels == 2:
+                        if wav_pos + 2 >= len_sound: break
+                        # Linear Interpolation
+                        val = (sound_data[2*pos] + frac_pos * (sound_data[2*pos+1] - sound_data[2*pos])) * vol
+                        data[i] += val
+                        val = (sound_data[2*pos+1] + frac_pos * (sound_data[2*pos+2] - sound_data[2*pos+1])) * vol
+                        data[i+1] +=  val
+
+                    
+                    else: # 0 or more than 2 channels
+                        return
+
+                    wav_pos += speed
+        
         else: # Stream Sound type
             return
 
-        # data *= vol_ratio     
-        self._curpos = pos
+        self._curpos = wav_pos
         # print("\a")
 
     #-----------------------------------------

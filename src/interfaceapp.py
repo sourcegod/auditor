@@ -239,7 +239,7 @@ class InterfaceApp(object):
        
         if chan:
             speed_num = chan.get_speed()
-            msg = f"speed {speed_num}, on channel {chan.id}"
+            msg = f"speed {speed_num:0.2f}, on channel {chan.id}"
         else:
             msg = f"No speed on No channel"
 
