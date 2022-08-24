@@ -538,8 +538,15 @@ class InterfaceApp(object):
         """
 
         print("Test from InterfaceApp object")
+        chan = self.mixer.get_last_chan()
+        if chan:
+            chan.set_pan(1) # 100% right channel
+        else:
+            msg = "No last channel"
+            self._parent.display(msg)
+        
         # test the cache
-        self.mixer.play_cache(1)
+        # self.mixer.play_cache(1)
         # self.start_midi_thread()
 
     #-------------------------------------------

@@ -105,8 +105,8 @@ class AudiChannel(DspEffect):
         self._maxvel = 128.0 # velocity
         self._volume =1 # self._maxvol / self._maxvol
         self._maxpan =127 # max panoramique volume
-        self._leftpan =1 # left channel volume of sample
-        self._rightpan =1 # right channel volume of sample
+        self._left_gain =0.5 # left channel volume of sample
+        self._right_gain =0.5 # right channel volume of sample
         self._muted =0
         self._leftmute =1 # for left channel mute
         self._rightmute =1 # for right channel mute
@@ -116,6 +116,8 @@ class AudiChannel(DspEffect):
         self._looping = False
         self._vol_mix = 0.5 # mix saturation volume
         self._speed = 1.0
+        self._pan =0
+
 
 
     #-----------------------------------------
@@ -370,24 +372,39 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def get_panning(self):
-        # return left and right channel for a sample
-        return (self._leftpan, self._rightpan)
+    def get_pan(self):
+        """
+        returns pan value for both channels side
+        from AudiChannel object
+        """
+
+        return self._pan
 
     #-----------------------------------------
 
-    def set_panning(self, leftpan=127, rightpan=127):
-        # set the channel panoramique
-        self._leftpan = self.limitvalue(0, self._maxpan, leftpan)
-        self._rightpan = self.limitvalue(0, self._maxpan, rightpan)
-        self._leftpan /= self._maxpan 
-        self._rightpan /= self._maxpan 
+    def set_pan(self, pan):
+        """
+        set the pan for both channels side
+        from AudiChannel object
+        """
+        # pan varie from -1.0 to 1.0
+        self._pan = uti.limit_value(pan, -1.0, 1.0)
+        self.update_pan()
 
     #-----------------------------------------
 
-    def process_panning(self, wavebuf):
-        # process channel panning
-        return self.dsp_volume(wavebuf, self._leftpan, self._rightpan)
+    def update_pan(self):
+        """
+        Linear Panning
+        updating both channels side
+        from AudiChannel object
+        """
+
+        # pan varie from -1.0 to 1.0
+        # left_gain and right_gain varie from 0 to 1.0
+        pos = self._pan * 0.5
+        self._left_gain = 0.5 - pos
+        self._right_gain = pos + 0.5
 
     #-----------------------------------------
 
@@ -479,7 +496,7 @@ class AudiChannel(DspEffect):
             if item == 'dsp_001': # volume
                 wavebuf = self.dsp_volume(wavebuf, self._volume)
             elif item == 'dsp_002':
-                wavebuf = self.dsp_panning(wavebuf, self._leftpan, self._rightpan)
+                wavebuf = self.dsp_panning(wavebuf, self._left_gain, self._right_gain)
             elif item == 'dsp_010': # test effect
                 wavebuf = self.dsp_test(wavebuf)
          
@@ -548,6 +565,8 @@ class AudiChannel(DspEffect):
         # print(f"voici count: {count}, len_data: {len(data)}")
         vol = self._volume * self._vol_mix
         speed = self._speed
+        left_gain = self._left_gain
+        right_gain = self._right_gain
         sound = self._sound
         if sound is None: return
         sound_data = sound.get_data()
@@ -571,28 +590,28 @@ class AudiChannel(DspEffect):
                         if wav_pos + 1 >= len_sound: break
                         if speed == 1.0: # no speeding
                             val = sound_data[pos] * vol
-                            data[i] += val #
-                            data[i+1] += val #
+                            data[i] += val * left_gain #
+                            data[i+1] += val * right_gain #
                         else: # speeding
                             # Linear Interpolation
                             val = (sound_data[pos] + frac_pos * (sound_data[pos+1] - sound_data[pos])) * vol
-                            data[i] += val
-                            data[i+1] += val #
+                            data[i] += val * left_gain
+                            data[i+1] += val * right_gain
 
                     elif sound._nchannels == 2:
                         if wav_pos + 2 >= len_sound: break
                         if speed == 1.0: # no speed
                             val = sound_data[2*pos] * vol
-                            data[i] += val
+                            data[i] += val * left_gain
                             val = sound_data[2*pos+1] * vol
-                            data[i+1] += val
+                            data[i+1] += val * right_gain
 
                         else: # speeding
                             # Linear Interpolation
                             val = (sound_data[2*pos] + frac_pos * (sound_data[2*pos+1] - sound_data[2*pos])) * vol
-                            data[i] += val
+                            data[i] += val * left_gain
                             val = (sound_data[2*pos+1] + frac_pos * (sound_data[2*pos+2] - sound_data[2*pos+1])) * vol
-                            data[i+1] +=  val
+                            data[i+1] +=  val * right_gain
 
                     else: # 0 or more than 2 channels
                         return
