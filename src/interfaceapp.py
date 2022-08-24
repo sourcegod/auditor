@@ -248,6 +248,32 @@ class InterfaceApp(object):
 
     #-------------------------------------------
 
+    def change_pan(self, step=0, adding=0):
+        """
+        change panning item
+        from InterfaceApp object
+        """
+        
+        if self.mixer is None: return
+        chan = self.mixer.get_last_chan()
+        if chan:
+            pan_num = chan.get_pan()
+            pan_num += step
+            chan.set_pan(pan_num)
+        
+       
+        if chan:
+            pan_num = chan.get_pan()
+            msg = f"Pan {pan_num:0.2f}, on channel {chan.id}"
+        else:
+            msg = f"No panning on No channel"
+
+        if self._parent:
+            self._parent.display(msg)
+
+    #-------------------------------------------
+
+
 
     def gen_channels(self):
         """

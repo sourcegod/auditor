@@ -96,8 +96,12 @@ class MainApp(object):
                 self.iap.change_speed(step=0.05, adding=1)
             elif key == 'F':
                 self.iap.change_speed(step=-0.05, adding=1)
+            elif key == 'g':
+                self.iap.change_pan(step=0.1, adding=1)
+            elif key == 'G':
+                self.iap.change_pan(step=-0.1, adding=1)
 
-            elif key in ('g', 'h',
+            elif key in ('h',
                     'i', 'j', 'k', 
                     'l', 'm', 
                     ):
