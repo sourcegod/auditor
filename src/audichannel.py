@@ -188,6 +188,8 @@ class AudiChannel(DspEffect):
         try:
             del self._active_chan_dic[self.id]
         except KeyError:
+            uti.beep()
+            # print(f"Error: KeyError when deleting channel: {self.id}")
             pass
         self._sound = None
         self._curpos =0
@@ -567,26 +569,31 @@ class AudiChannel(DspEffect):
                     frac_pos = wav_pos - pos
                     if sound._nchannels == 1:
                         if wav_pos + 1 >= len_sound: break
-                        if speed != 1.0:
-                            # print("\a")
+                        if speed == 1.0: # no speeding
+                            val = sound_data[pos] * vol
+                            data[i] += val #
+                            data[i+1] += val #
+                        else: # speeding
                             # Linear Interpolation
                             val = (sound_data[pos] + frac_pos * (sound_data[pos+1] - sound_data[pos])) * vol
                             data[i] += val
                             data[i+1] += val #
-                        else:
-                            val = sound_data[pos] * vol
-                            data[i] += val #
-                            data[i+1] += val #
 
                     elif sound._nchannels == 2:
                         if wav_pos + 2 >= len_sound: break
-                        # Linear Interpolation
-                        val = (sound_data[2*pos] + frac_pos * (sound_data[2*pos+1] - sound_data[2*pos])) * vol
-                        data[i] += val
-                        val = (sound_data[2*pos+1] + frac_pos * (sound_data[2*pos+2] - sound_data[2*pos+1])) * vol
-                        data[i+1] +=  val
+                        if speed == 1.0: # no speed
+                            val = sound_data[2*pos] * vol
+                            data[i] += val
+                            val = sound_data[2*pos+1] * vol
+                            data[i+1] += val
 
-                    
+                        else: # speeding
+                            # Linear Interpolation
+                            val = (sound_data[2*pos] + frac_pos * (sound_data[2*pos+1] - sound_data[2*pos])) * vol
+                            data[i] += val
+                            val = (sound_data[2*pos+1] + frac_pos * (sound_data[2*pos+2] - sound_data[2*pos+1])) * vol
+                            data[i+1] +=  val
+
                     else: # 0 or more than 2 channels
                         return
 

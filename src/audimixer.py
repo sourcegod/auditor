@@ -321,7 +321,8 @@ class AudiMixer(object):
         channels = self._active_chan_dic
         # print(f"frame_count: {frame_count}")
         for chan in list(channels.values()):
-            chan.write_sound_data(data, len_buf)
+            if chan._active:
+                chan.write_sound_data(data, len_buf)
 
         return (data.tobytes(), flag_ok)
 
