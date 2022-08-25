@@ -657,15 +657,16 @@ class AudiChannel(DspEffect):
         sound = self._sound
         if sound is None: return
         sound_data = sound.get_data()
-        len_sound = sound.get_length() # in frames
+        sound_len = sound.get_length() # in frames
         wav_pos = self._curpos
-        # print(f"curpos: {self._curpos}, len_sound: {len_sound}")
+        # print(f"curpos: {self._curpos}, sound_len: {sound_len}")
        
         if sound.sound_type == 0: # Sample type
                 for i in range (0, count, 2):
                     # Loop manager
-                    # TODO: wav_pos +2??? for Linear Interpolation in stereo sound
-                    if wav_pos +2 >= len_sound: 
+                    # FIX: wav_pos +1 for mono sound, 
+                    # and wav_pos +2 for stereo sound and Linear Interpolation in stereo sound
+                    if wav_pos +1 >= sound_len or wav_pos +2 >= sound_len: 
                         if self._looping:
                             wav_pos =0
                         else:
@@ -674,7 +675,7 @@ class AudiChannel(DspEffect):
                     pos = int(wav_pos)
                     frac_pos = wav_pos - pos
                     if sound._nchannels == 1:
-                        if wav_pos + 1 >= len_sound: break
+                        if wav_pos + 1 >= sound_len: break
                         if speed == 1.0: # no speeding
                             val = sound_data[pos] * vol
                             data[i] += val * left_gain #
@@ -686,7 +687,7 @@ class AudiChannel(DspEffect):
                             data[i+1] += val * right_gain
 
                     elif sound._nchannels == 2:
-                        if wav_pos + 2 >= len_sound: break
+                        if wav_pos + 2 >= sound_len: break
                         if speed == 1.0: # no speed
                             val = sound_data[2*pos] * vol
                             data[i] += val * left_gain
