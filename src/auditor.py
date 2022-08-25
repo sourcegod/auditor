@@ -100,9 +100,13 @@ class MainApp(object):
                 self.iap.change_pan(step=0.1, adding=1)
             elif key == 'G':
                 self.iap.change_pan(step=-0.1, adding=1)
+            elif key == 'h':
+                self.iap.change_delay(step=0.1, adding=1)
+            elif key == 'H':
+                self.iap.change_delay(step=-0.1, adding=1)
 
-            elif key in ('h',
-                    'i', 'j', 'k', 
+
+            elif key in ('i', 'j', 'k', 
                     'l', 'm', 
                     ):
                 self.play_key(key)    

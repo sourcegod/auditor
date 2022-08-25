@@ -94,13 +94,58 @@ class SimpleDelay(object):
         
         self._time = time # in seconds
         self._decay = decay # in gain
+        self._rate = rate
         self._pos =0
-        self._buf_size = int(time * rate)
+        self._buf_size = int(self._time * self._rate)
         # Init the buffer with zeros
         self._buffer = np.zeros((self._buf_size), dtype=np.float32)
 
     #-----------------------------------------
 
+    def get_time(self):
+        """
+        returns delay time
+        from SimpleDelay object
+        """
+
+        return self._time
+
+    #-----------------------------------------
+
+    def set_time(self, time):
+        """
+        set the delay time and reinit the data buffer
+        from SimpleDelay object
+        """
+        
+        self._time = uti.limit_value(time, 0.1, 5.0)
+        self._pos =0
+        self._buf_size = int(self._time * self._rate)
+        # Init the buffer with zeros
+        self._buffer = np.zeros((self._buf_size), dtype=np.float32)
+
+    #-----------------------------------------
+
+    def get_decay(self):
+        """
+        returns delay decay
+        from SimpleDelay object
+        """
+
+        return self._decay
+
+    #-----------------------------------------
+
+    def set_decay(self, decay):
+        """
+        set delay decay
+        from SimpleDelay object
+        """
+
+        self._decay = uti.limit_value(decay, 0.0, 1.0)
+
+    #-----------------------------------------
+    
     def write_sound_data(self, data, count):
         """ 
         mix buffer data with original data

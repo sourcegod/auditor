@@ -273,6 +273,31 @@ class InterfaceApp(object):
 
     #-------------------------------------------
 
+    def change_delay(self, step=0, adding=0):
+        """
+        change simple delay item
+        from InterfaceApp object
+        """
+        
+        if self.mixer is None: return
+        chan = self.mixer.get_last_chan()
+        if chan:
+            # TODO putting delay effect in DSP object
+            delay = self.mixer.simple_delay
+            time_num = delay.get_time()
+            time_num += step
+            delay.set_time(time_num)
+            time_num = delay.get_time()
+            msg = f"Delay time {time_num:0.2f}, on channel {chan.id}"
+        else:
+            msg = f"No Delay on No channel"
+
+        if self._parent:
+            self._parent.display(msg)
+
+    #-------------------------------------------
+
+
 
 
     def gen_channels(self):
