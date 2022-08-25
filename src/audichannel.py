@@ -84,6 +84,47 @@ class DspEffect(object):
 
 #========================================
 
+class SimpleDelay(object):
+    """ Simple delay effect manager """
+    def __init__(self, time: float, decay: float, rate: int=44100):
+        """ 
+        Init the Delay object 
+        from SimpleDelay object
+        """
+        
+        self._time = time # in seconds
+        self._decay = decay # in gain
+        self._pos =0
+        self._buf_size = int(time * rate)
+        # Init the buffer with zeros
+        self._buffer = np.zeros((self._buf_size), dtype=np.float32)
+
+    #-----------------------------------------
+
+    def write_sound_data(self, data, count):
+        """ 
+        mix buffer data with original data
+        from SimpleDelay object 
+        """
+        pos = self._pos
+        buffer = self._buffer
+        decay = self._decay
+        buf_size = self._buf_size
+        
+        for i in range(count):
+            # Mix sample with the one in the buffer at position pos
+            data[i] += buffer[pos] * decay
+            # Record the sample in the buffer at position pos
+            buffer[pos] = data[i]
+            
+            pos = (pos +1)  % buf_size
+
+        self._pos = pos
+
+    #-----------------------------------------
+
+#========================================
+
 
 class AudiChannel(DspEffect):
     """ channel manager """

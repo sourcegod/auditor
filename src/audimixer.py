@@ -272,6 +272,7 @@ class AudiMixer(object):
         # print("voici rool: ", self._roll_lst)
         self._vol_ratio =0.5
         self.cur_func = None
+        self.simple_delay = auchan.SimpleDelay(time=0.5, decay=0.5, rate=44100)
 
     #-----------------------------------------
 
@@ -319,10 +320,13 @@ class AudiMixer(object):
         # flag = pyaudio.paContinue
         flag_ok = self.audio_driver.flag_ok
         channels = self._active_chan_dic
+        simple_delay = self.simple_delay
         # print(f"frame_count: {frame_count}")
         for chan in list(channels.values()):
             if chan._active:
                 chan.write_sound_data(data, len_buf)
+        # effect delay
+        simple_delay.write_sound_data(data, len_buf)
 
         return (data.tobytes(), flag_ok)
 
