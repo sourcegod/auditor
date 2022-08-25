@@ -660,17 +660,17 @@ class AudiChannel(DspEffect):
         len_sound = sound.get_length() # in frames
         wav_pos = self._curpos
         # print(f"curpos: {self._curpos}, len_sound: {len_sound}")
-        # wav_pos +2? for Linear Interpolation in stereo sound
-        if wav_pos +2 >= len_sound: 
-            if self._looping:
-                self._curpos =0
-                wav_pos = self._curpos
-            else:
-                self.stop()
-                return
-        
+       
         if sound.sound_type == 0: # Sample type
                 for i in range (0, count, 2):
+                    # Loop manager
+                    # TODO: wav_pos +2??? for Linear Interpolation in stereo sound
+                    if wav_pos +2 >= len_sound: 
+                        if self._looping:
+                            wav_pos =0
+                        else:
+                            self.stop()
+                            return
                     pos = int(wav_pos)
                     frac_pos = wav_pos - pos
                     if sound._nchannels == 1:

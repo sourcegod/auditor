@@ -325,7 +325,8 @@ class InterfaceApp(object):
         
         # in streaming
         snd5 = self.mixer.create_stream(fname4)
-        snd6 = self.mixer.create_stream(fname2)
+        # snd6 = self.mixer.create_stream(fname2)
+        snd6 = self.mixer.create_sample(fname2)
         snd7 = self.mixer.create_stream(fname5)
 
         # inn memory
@@ -429,11 +430,16 @@ class InterfaceApp(object):
                 instru.m_vel =-1
                 instru.chan.set_vel(-1)
             if instru.key == key0 +5:
-                instru.snd.set_loop_mode(1)
+                # instru.snd.set_loop_mode(1)
+                instru.chan.set_looping(True)
                 instru.chan_mode =0
                 instru.loop_mode =1
                 instru.loop_count =-1
-        # """
+            if instru.key == key0 +7:
+                instru.chan.set_looping(True)
+                instru.loop_mode =1
+
+         # """
 
     #-----------------------------------------
     
