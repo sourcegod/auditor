@@ -273,6 +273,7 @@ class AudiMixer(object):
         self._vol_ratio =0.5
         self.cur_func = None
         self.simple_delay = auchan.SimpleDelay(time=0.5, decay=0.5, rate=44100)
+        self.simple_delay._active =1
 
     #-----------------------------------------
 
@@ -321,12 +322,15 @@ class AudiMixer(object):
         flag_ok = self.audio_driver.flag_ok
         channels = self._active_chan_dic
         simple_delay = self.simple_delay
+        simple_delay._active =0
+        
         # print(f"frame_count: {frame_count}")
         for chan in list(channels.values()):
             if chan._active:
                 chan.write_sound_data(data, len_buf)
         # effect delay
-        simple_delay.write_sound_data(data, len_buf)
+        if simple_delay._active:
+            simple_delay.write_sound_data(data, len_buf)
 
         return (data.tobytes(), flag_ok)
 

@@ -99,6 +99,7 @@ class SimpleDelay(object):
         self._buf_size = int(self._time * self._rate)
         # Init the buffer with zeros
         self._buffer = np.zeros((self._buf_size), dtype=np.float32)
+        self._active =0 # deactivate the delay by default
 
     #-----------------------------------------
 
