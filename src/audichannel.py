@@ -650,16 +650,18 @@ class AudiChannel(DspEffect):
         """
 
         # print(f"voici count: {count}, len_data: {len(data)}")
-        vol = self._volume * self._vol_mix
-        speed = self._speed
-        left_gain = self._left_gain
-        right_gain = self._right_gain
         sound = self._sound
         if sound is None: return
         sound_len = sound.get_length() # in frames
+        if not sound_len: return
         wav_pos = self._curpos
        
         if sound.sound_type == 0: # Sample type
+            vol = self._volume * self._vol_mix
+            speed = self._speed
+            left_gain = self._left_gain
+            right_gain = self._right_gain
+
             sound_data = sound.get_data()
 
             for i in range (0, count, 2):
@@ -679,8 +681,8 @@ class AudiChannel(DspEffect):
                     if wav_pos + 1 >= sound_len: break
                     if speed == 1.0: # no speeding
                         val = sound_data[pos] * vol
-                        data[i] += val * left_gain #
-                        data[i+1] += val * right_gain #
+                        data[i] += val * left_gain
+                        data[i+1] += val * right_gain
                     else: # speeding
                         # Linear Interpolation
                         val = (sound_data[pos] + frac_pos * (sound_data[pos+1] - sound_data[pos])) * vol
@@ -708,26 +710,75 @@ class AudiChannel(DspEffect):
                 wav_pos += speed
 
         elif sound.sound_type == 1: # Stream type
-            
-            """
-            sound_data = sound.read_frames(count)
-            if not sound_data.size: 
-                sound.set_position(0)
-                self._curpos =0
+                self.mix_stream_data(data, count, sound, sound_len)
                 return
-            else: # data is valid
-                buf_len = len(sound_data)
-                print(f"voici buf_len: {buf_len}")
-                # return
-            """
-
-            return
 
     
         self._curpos = wav_pos
         # print("\a")
 
     #-----------------------------------------
+
+    def mix_stream_data(self, data, count, sound, sound_len):
+        """
+        Mix Stream Sound data
+        from AudiChannel object
+        """
+
+        vol = self._volume * self._vol_mix
+        speed = self._speed
+        left_gain = self._left_gain
+        right_gain = self._right_gain
+        wav_pos  =0
+        nb_frames = count
+        uti.beep()
+        
+        # """
+        if sound._nchannels == 2:
+            nb_frames = int(count / 2)
+        buf_data = sound.read_frames(nb_frames)
+        if not buf_data.size: 
+            if self._looping:
+                self._curpos =0
+                sound.set_position(0)
+            else:
+                self.stop()
+            # print("Not buf_data.size")
+            return
+        else: # data is valid
+            buf_len = len(buf_data)
+            if buf_len < count:
+                count = buf_len
+            # print(f"voici buf_len: {buf_len}")
+
+        if sound._nchannels == 1:
+            for i in range(0, count, 2):
+                if wav_pos >= buf_len: break
+                val = buf_data[wav_pos]
+                data[i] += val
+                data[i+1] += val
+
+                wav_pos +=1
+        
+        elif sound._nchannels == 2:
+            for i in range(0, count, 2):
+                if wav_pos >= buf_len: break
+                val = buf_data[2*wav_pos]
+                data[i] += val
+                val = buf_data[2*wav_pos+1]
+                data[i+1] += val
+
+                wav_pos +=1
+            
+        else:  # No channel or more than 2
+                return
+
+
+        # """
+
+        self._curpos = wav_pos
+
+        return
 
 
 #========================================

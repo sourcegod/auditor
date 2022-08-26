@@ -325,8 +325,8 @@ class InterfaceApp(object):
         
         # in streaming
         snd5 = self.mixer.create_stream(fname4)
-        # snd6 = self.mixer.create_stream(fname2)
-        snd6 = self.mixer.create_sample(fname2)
+        snd6 = self.mixer.create_stream(fname2)
+        # snd6 = self.mixer.create_sample(fname2)
         snd7 = self.mixer.create_stream(fname5)
 
         # inn memory
@@ -334,8 +334,11 @@ class InterfaceApp(object):
         snd8 = self.mixer.create_sample(fname6)
         snd9 = self.mixer.create_sample(fname7)
         snd10 = self.mixer.create_sample(fname8)
+        # in stream
+        # mono stream
+        snd11 = self.mixer.create_stream(fname6)
 
-        for i in range(10):
+        for i in range(11):
             self.mixer.create_channel()
             # chan1.set_volume(16)
             # chan1.set_panning(127, 0)
