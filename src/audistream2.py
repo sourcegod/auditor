@@ -18,6 +18,7 @@ class AudiStream(AudiSoundBase):
         self.sound_type =1 # type stream
         if filename:
             self.load(filename)
+        self._buf_arr = None
     
     #-----------------------------------------
 
@@ -133,6 +134,37 @@ class AudiStream(AudiSoundBase):
             # repeat each value to convert mono to stereo
             self._buf_arr = np.repeat(self._buf_arr, 2)
  
+        return self._buf_arr
+
+    #-----------------------------------------
+
+    def read_frames(self, nb_frames):
+        """ 
+        read nb_frames frames with pysoundfile
+        from audistream object
+        """
+        wav_data = None
+
+        try:
+            wav_data = self._wavfile.read(frames=nb_frames, dtype=np.float32)
+        except RuntimeError as err:
+            print(f"Error: unable to read stream file: {self._filename}")
+            return
+
+        self._curpos += nb_frames
+        # convert buf_arr in one dimensional array
+        self._buf_arr = wav_data.flatten()
+
+        return self._buf_arr
+
+    #-----------------------------------------
+
+    def get_data(self):
+        """
+        returns data sound
+        from AudiStream object
+        """
+
         return self._buf_arr
 
     #-----------------------------------------
