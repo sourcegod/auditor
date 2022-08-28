@@ -18,7 +18,10 @@ class AudiStream(AudiSoundBase):
         self.sound_type =1 # type stream
         if filename:
             self.load(filename)
-        self._buf_arr = None
+        self._buf_arr = np.array([], dtype=np.float32)
+        self.buf_pos =0
+        self.buf_len =0
+
     
     #-----------------------------------------
 
@@ -78,7 +81,6 @@ class AudiStream(AudiSoundBase):
             print(f"Closing stream file: {self._filename}")
             
     #-----------------------------------------
-
 
     def read_data(self, nb_frames):
         """ 
@@ -151,20 +153,24 @@ class AudiStream(AudiSoundBase):
             print(f"Error: unable to read stream file: {self._filename}")
             return
 
-        self._curpos += nb_frames
+        self._curpos += len(wav_data)
         # convert buf_arr in one dimensional array
         self._buf_arr = wav_data.flatten()
+        self.buf_pos =0
+        self.buf_len = len(self._buf_arr)
+
 
         return self._buf_arr
 
     #-----------------------------------------
 
-    def get_data(self):
+    def get_raw_data(self):
         """
         returns data sound
         from AudiStream object
         """
 
+        # print(f"voici len _buf_arr: {len(self._buf_arr)}")
         return self._buf_arr
 
     #-----------------------------------------

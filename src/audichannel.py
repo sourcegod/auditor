@@ -8,6 +8,9 @@ File: audichannel.py:
 import numpy as np
 import audimixer as aumix
 import utils as uti
+import logging as log
+log.basicConfig(level=log.DEBUG, filename="/tmp/app.log", filemode='w')
+
 class DspEffect(object):
     """ effect manager """
     def __init__(self):
@@ -204,8 +207,10 @@ class AudiChannel(DspEffect):
         self._vol_mix = 0.5 # mix saturation volume
         self._speed = 1.0
         self._pan =0
-
-
+        self._buf_len =0
+        self._buf_pos =0
+        self._wav_pos =0
+        self._count =0
 
     #-----------------------------------------
 
@@ -277,7 +282,7 @@ class AudiChannel(DspEffect):
         try:
             del self._active_chan_dic[self.id]
         except KeyError:
-            uti.beep()
+            # uti.beep()
             # print(f"Error: KeyError when deleting channel: {self.id}")
             pass
         self._sound = None
@@ -655,6 +660,7 @@ class AudiChannel(DspEffect):
         sound_len = sound.get_length() # in frames
         if not sound_len: return
         wav_pos = self._curpos
+        nb_channels = sound._nchannels
        
         if sound.sound_type == 0: # Sample type
             vol = self._volume * self._vol_mix
@@ -677,7 +683,7 @@ class AudiChannel(DspEffect):
                         return
                 pos = int(wav_pos)
                 frac_pos = wav_pos - pos
-                if sound._nchannels == 1:
+                if nb_channels == 1:
                     if wav_pos + 1 >= sound_len: break
                     if speed == 1.0: # no speeding
                         val = sound_data[pos] * vol
@@ -689,7 +695,7 @@ class AudiChannel(DspEffect):
                         data[i] += val * left_gain
                         data[i+1] += val * right_gain
 
-                elif sound._nchannels == 2:
+                elif nb_channels == 2:
                     if wav_pos + 2 >= sound_len: break
                     if speed == 1.0: # no speed
                         val = sound_data[2*pos] * vol
@@ -710,7 +716,7 @@ class AudiChannel(DspEffect):
                 wav_pos += speed
 
         elif sound.sound_type == 1: # Stream type
-                self.mix_stream_data(data, count, sound, sound_len)
+                self.mix_stream_data(data, count, sound, sound_len, nb_channels)
                 return
 
     
@@ -719,7 +725,7 @@ class AudiChannel(DspEffect):
 
     #-----------------------------------------
 
-    def mix_stream_data(self, data, count, sound, sound_len):
+    def mix_stream_data(self, data, count, sound, sound_len, nb_channels):
         """
         Mix Stream Sound data
         from AudiChannel object
@@ -729,59 +735,138 @@ class AudiChannel(DspEffect):
         speed = self._speed
         left_gain = self._left_gain
         right_gain = self._right_gain
-        wav_pos  =0
-        nb_frames = count
-        uti.beep()
+        curpos = self._curpos
+        wav_pos  =0 
+        buf_pos = sound.buf_pos
+        buf_len = sound.buf_len
+        nb_samples = buf_pos * nb_channels
+        nb_frames = count * 4
         
-        # """
-        if sound._nchannels == 2:
-            nb_frames = int(count / 2)
-        buf_data = sound.read_frames(nb_frames)
-        if not buf_data.size: 
+        """
+        if not hasattr(self, "_count"):
+            self._count =0
+        # uti.beep()i
+        """
+        
+        if curpos == 0:
+            sound.set_position(0)
+            sound.buf_pos =0
+            buf_pos =0
+            self._buf_len =0
+
+        sound_pos = sound.get_position(0) # in frames
+        endpos = sound.get_end_position(0) # in frames
+        # TODO: Unable to call sound.get_data function, no way to know why???
+        # buf_data = sound.get_data() # in samples
+        buf_data = sound.get_raw_data() # in samples
+        
+        # print(f"curpos: {curpos}, sound_len: {sound_len}")
+        if sound_pos >= sound_len and nb_samples >= buf_len:
+            # print(f"Revoici curpos: {curpos}, _buf_len: {self._buf_len}\nsound_len: {sound_len}")
+            
+            msg = f"Finishing with count: {self._count}:\n"\
+                + f"    sound_pos: {sound_pos}, buf_pos: {buf_pos}, nb_samples: {nb_samples},\n"\
+            + f"    buf_len: {buf_len}, self._buf_len: {self._buf_len}, self._curpos: {self._curpos}\n"\
+            + "###----------------------------------------"
+            log.info(msg)
+            log.disable(log.CRITICAL+1)
+            # self.stop()
+            # return
             if self._looping:
                 self._curpos =0
+                sound.buf_pos =0
+                self._buf_len =0
                 sound.set_position(0)
-            else:
+            else: # No looping
                 self.stop()
             # print("Not buf_data.size")
+            self._buf_len =0
+            sound.buf_pos =0
             return
-        else: # data is valid
-            buf_len = len(buf_data)
-            if buf_len < count:
-                count = buf_len
-            # print(f"voici buf_len: {buf_len}")
 
-        if sound._nchannels == 1:
+        # print(f"voici curpos: {curpos}, buf_len: {buf_len}, wav_pos: {wav_pos}")
+
+        if curpos == 0:
+            msg_head = f"With Count: {self._count}, sound_len: {sound_len}, nb_frames: {nb_frames}, nb_channels: {nb_channels}\n"
+            log.info(msg_head)
+        
+        msg0 = f"    sound_pos: {sound_pos}, buf_pos: {buf_pos}, nb_samples: {nb_samples},\n"\
+            + f"    buf_len: {buf_len}, self._buf_len: {self._buf_len}, self._curpos: {self._curpos}"
+        
+        msg = f"Voici count: {self._count}\n"\
+            + msg0
+        log.info(msg)
+        # return
+        if curpos == 0 or nb_samples >= buf_len:
+            # reading nb_frames frames
+            buf_data = sound.read_frames(nb_frames)
+            sound_pos = sound.get_position()
+            uti.beep()
+            if not buf_data.size:
+                self.stop()
+                # print(f"voici curpos: {curpos}, _len_buf: {self._buf_len},\nSound_len: {sound_len}")
+                self._buf_len =0
+                sound.buf_pos =0
+                return
+            else: # data is valid
+                buf_len = sound.buf_len
+                self._buf_len += buf_len
+                sound.buf_pos =0
+                buf_pos =0
+                nb_samples =0
+
+                msg = f"Reading data with Count: {self._count}\n"\
+                    + f"    sound_pos: {sound_pos}, buf_pos: {buf_pos}, nb_samples: {nb_samples},\n"\
+                    + f"    buf_len: {buf_len}, self._buf_len: {self._buf_len}, self._curpos: {self._curpos}"
+                log.info(msg)
+                # print(f"voici curpos: {curpos}, buf_len: {buf_len}, wav_pos: {wav_pos}")
+
+                # print(f"curpos: {curpos}, buf_len: {buf_len}, _buf_len: {self._buf_len}, sound_len: {sound_len}")
+                if buf_len < count:
+                    count = buf_len
+                # print(f"voici buf_len: {buf_len}")
+
+        
+        if nb_channels == 1:
             for i in range(0, count, 2):
-                if wav_pos >= buf_len: break
-                val = buf_data[wav_pos]
+                index = nb_samples + wav_pos
+                if index >= buf_len: break
+                val = buf_data[index]
                 data[i] += val
                 data[i+1] += val
 
                 wav_pos +=1
         
-        elif sound._nchannels == 2:
+        elif nb_channels == 2:
             for i in range(0, count, 2):
-                if wav_pos >= buf_len: break
-                val = buf_data[2*wav_pos]
+                index = nb_samples + (wav_pos * 2) # nb_channels
+                if index + 1 >= buf_len: break
+                val = buf_data[index]
                 data[i] += val
-                val = buf_data[2*wav_pos+1]
+                val = buf_data[index+1]
                 data[i+1] += val
 
                 wav_pos +=1
             
         else:  # No channel or more than 2
-                return
+            return
 
 
         # """
 
-        self._curpos = wav_pos
+        # print(f"self._curpos: {self._curpos}, wav_pos: {wav_pos}")
+        self._curpos += wav_pos
+        sound.buf_pos += wav_pos
+        self._count +=1
 
         return
 
+    #-----------------------------------------
 
 #========================================
 
 
-
+if __name__ == "__main__":
+    chan = AudiChannel()
+    print(f"Channel id: {chan.id}")
+    input("It's OK...")

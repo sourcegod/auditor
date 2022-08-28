@@ -95,9 +95,12 @@ class InterfaceApp(object):
             self.gen_instru_from_conf()
             self.gen_channels()
             self.gen_instruments()
+            """
             if self.cacher:
                 self.cacher.preload()
                 self.cacher.set_caching(1)
+            """
+
             self.player.init()
             self.audio_driver.start_engine()
             self.start_midi_thread(inport=1, outport=0, func=self._midi_handler)
