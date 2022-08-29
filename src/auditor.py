@@ -170,6 +170,10 @@ class MainApp(object):
             elif key == 'T': # test
                 # self.Test()
                 self.iap.test()
+            elif key == 'y':
+                self.iap.start_log()
+            elif key == 'Y':
+                self.iap.stop_log()
             elif key == 'u':
                 # print("Status: channels: %d, samplewidth: %d, rate: %d" %(aud.getfileinfo()))
                 pass

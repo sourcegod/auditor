@@ -9,7 +9,7 @@ import numpy as np
 import audimixer as aumix
 import utils as uti
 import logging as log
-log.basicConfig(level=log.DEBUG, filename="/tmp/app.log", filemode='w')
+# log.basicConfig(level=log.DEBUG, filename="/tmp/app.log", filemode='w')
 
 class DspEffect(object):
     """ effect manager """
@@ -668,52 +668,64 @@ class AudiChannel(DspEffect):
             left_gain = self._left_gain
             right_gain = self._right_gain
 
-            sound_data = sound.get_data()
+            buf_data = sound.get_data()
 
-            for i in range (0, count, 2):
-                # uti.beep()
-                # Loop manager
-                # FIX: wav_pos +1 for mono sound, 
-                # and wav_pos +2 for stereo sound and Linear Interpolation in stereo sound
-                if wav_pos +1 >= sound_len or wav_pos +2 >= sound_len: 
-                    if self._looping:
-                        wav_pos =0
-                    else:
-                        self.stop()
-                        return
-                pos = int(wav_pos)
-                frac_pos = wav_pos - pos
-                if nb_channels == 1:
-                    if wav_pos + 1 >= sound_len: break
+            if nb_channels == 1:
+                for i in range (0, count, 2):
+                    # uti.beep()
+                    if wav_pos +1 >= sound_len:
+                    # Loop manager
+                        if self._looping:
+                            wav_pos =0
+                        else: # No looping
+                            self.stop()
+                            return
+
+                    pos = int(wav_pos)
+                    frac_pos = wav_pos - pos
                     if speed == 1.0: # no speeding
-                        val = sound_data[pos] * vol
+                        val = buf_data[pos] * vol
                         data[i] += val * left_gain
                         data[i+1] += val * right_gain
                     else: # speeding
                         # Linear Interpolation
-                        val = (sound_data[pos] + frac_pos * (sound_data[pos+1] - sound_data[pos])) * vol
+                        val = (buf_data[pos] + frac_pos * (buf_data[pos+1] - buf_data[pos])) * vol
                         data[i] += val * left_gain
                         data[i+1] += val * right_gain
 
-                elif nb_channels == 2:
-                    if wav_pos + 2 >= sound_len: break
+                    wav_pos += speed
+
+            elif nb_channels == 2:
+                for i in range (0, count, 2):
+                    if wav_pos +1 >= sound_len:
+                        # Loop manager
+                        if self._looping:
+                            wav_pos =0
+                        else: # No looping
+                            self.stop()
+                            return
+
+                    pos = int(wav_pos * 2)
                     if speed == 1.0: # no speed
-                        val = sound_data[2*pos] * vol
+                        if wav_pos + 1 >= sound_len: break
+                        val = buf_data[pos] * vol
                         data[i] += val * left_gain
-                        val = sound_data[2*pos+1] * vol
+                        val = buf_data[pos+1] * vol
                         data[i+1] += val * right_gain
 
                     else: # speeding
+                        if wav_pos + 2 >= sound_len: break
                         # Linear Interpolation
-                        val = (sound_data[2*pos] + frac_pos * (sound_data[2*pos+1] - sound_data[2*pos])) * vol
+                        val = (buf_data[pos] + frac_pos * (buf_data[pos+1] - buf_data[pos])) * vol
                         data[i] += val * left_gain
-                        val = (sound_data[2*pos+1] + frac_pos * (sound_data[2*pos+2] - sound_data[2*pos+1])) * vol
+                        val = (buf_data[pos+1] + frac_pos * (buf_data[pos+2] - buf_data[pos+1])) * vol
                         data[i+1] +=  val * right_gain
+                
+                    wav_pos += speed
 
-                else: # 0 or more than 2 channels
-                    return
+            else: # 0 or more than 2 channels
+                return
 
-                wav_pos += speed
 
         elif sound.sound_type == 1: # Stream type
                 self.mix_stream_data(data, count, sound, sound_len, nb_channels)
@@ -732,7 +744,8 @@ class AudiChannel(DspEffect):
         """
 
         vol = self._volume * self._vol_mix
-        speed = self._speed
+        # Speed Not Implemented YET
+        speed = 1.0 # self._speed
         left_gain = self._left_gain
         right_gain = self._right_gain
         curpos = self._curpos
@@ -740,7 +753,7 @@ class AudiChannel(DspEffect):
         buf_pos = sound.buf_pos
         buf_len = sound.buf_len
         nb_samples = buf_pos * nb_channels
-        nb_frames = count * 4
+        nb_frames = count * 4 # 4
         
         """
         if not hasattr(self, "_count"):
@@ -769,7 +782,7 @@ class AudiChannel(DspEffect):
             + f"    buf_len: {buf_len}, self._buf_len: {self._buf_len}, self._curpos: {self._curpos}\n"\
             + "###----------------------------------------"
             log.info(msg)
-            log.disable(log.CRITICAL+1)
+            # log.disable(log.CRITICAL+1)
             # self.stop()
             # return
             if self._looping:
@@ -782,12 +795,13 @@ class AudiChannel(DspEffect):
             # print("Not buf_data.size")
             self._buf_len =0
             sound.buf_pos =0
+            self._count =0
             return
 
         # print(f"voici curpos: {curpos}, buf_len: {buf_len}, wav_pos: {wav_pos}")
 
         if curpos == 0:
-            msg_head = f"With Count: {self._count}, sound_len: {sound_len}, nb_frames: {nb_frames}, nb_channels: {nb_channels}\n"
+            msg_head = f"With Count: {self._count}, sound_len: {sound_len}, nb_frames: {nb_frames}, nb_channels: {nb_channels}, speed: {speed}\n"
             log.info(msg_head)
         
         msg0 = f"    sound_pos: {sound_pos}, buf_pos: {buf_pos}, nb_samples: {nb_samples},\n"\
@@ -797,11 +811,13 @@ class AudiChannel(DspEffect):
             + msg0
         log.info(msg)
         # return
+
         if curpos == 0 or nb_samples >= buf_len:
             # reading nb_frames frames
+            # and updates: sound.buf_len, sound.buf_pos variables
             buf_data = sound.read_frames(nb_frames)
             sound_pos = sound.get_position()
-            uti.beep()
+            # uti.beep()
             if not buf_data.size:
                 self.stop()
                 # print(f"voici curpos: {curpos}, _len_buf: {self._buf_len},\nSound_len: {sound_len}")
@@ -815,7 +831,7 @@ class AudiChannel(DspEffect):
                 buf_pos =0
                 nb_samples =0
 
-                msg = f"Reading data with Count: {self._count}\n"\
+                msg = f"After Reading data with Count: {self._count}\n"\
                     + f"    sound_pos: {sound_pos}, buf_pos: {buf_pos}, nb_samples: {nb_samples},\n"\
                     + f"    buf_len: {buf_len}, self._buf_len: {self._buf_len}, self._curpos: {self._curpos}"
                 log.info(msg)
@@ -830,23 +846,65 @@ class AudiChannel(DspEffect):
         if nb_channels == 1:
             for i in range(0, count, 2):
                 index = nb_samples + wav_pos
-                if index >= buf_len: break
-                val = buf_data[index]
-                data[i] += val
-                data[i+1] += val
+                pos = int(index)
+                # frac_pos = index - pos
+                if pos >= buf_len: break
+                val = buf_data[pos] * vol
+                data[i] += val * left_gain
+                data[i+1] += val * right_gain
+                
+                """
+                # Speed Not Implemented
+                if speed == 1.0: # no speeding
+                    if pos >= buf_len: break
+                    val = buf_data[pos] * vol
+                    data[i] += val * left_gain
+                    data[i+1] += val * right_gain
+                else: # speeding
+                    # Linear Interpolation
+                    if pos +1 >= buf_len: 
+                        # print(f"In the Loop, _count: {self._count}, buf_pos: {buf_pos:0.3f}, buf_len: {buf_len}, curpos: {curpos:0.3f}")
+                        break
+                    
+                    val = (buf_data[pos] + frac_pos * (buf_data[pos+1] - buf_data[pos])) * vol
+                    # print(f"Voici pos: {pos}, buf_len: {buf_len}")
+                    data[i] += val * left_gain
+                    data[i+1] += val * right_gain
+                """
 
-                wav_pos +=1
+                wav_pos += speed
         
         elif nb_channels == 2:
             for i in range(0, count, 2):
                 index = nb_samples + (wav_pos * 2) # nb_channels
-                if index + 1 >= buf_len: break
-                val = buf_data[index]
-                data[i] += val
-                val = buf_data[index+1]
-                data[i+1] += val
+                pos = int(index)
+                # frac_pos = index - pos
+                if pos + 1 >= buf_len: break
+                val = buf_data[pos] * vol
+                data[i] += val * left_gain
+                val = buf_data[pos+1] * vol
+                data[i+1] += val * right_gain
 
-                wav_pos +=1
+                """
+                # Speed Not Implemented
+                if speed == 1.0: # No speeding
+                    if pos + 1 >= buf_len: break
+                    val = buf_data[pos] * vol
+                    data[i] += val * left_gain
+                    val = buf_data[pos+1] * vol
+                    data[i+1] += val * right_gain
+
+                else: # speeding
+                    if pos + 2 >= buf_len: break
+                    # Linear Interpolation
+                    val = (buf_data[pos] + frac_pos * (buf_data[pos+1] - buf_data[pos])) * vol
+                    data[i] += val * left_gain
+                    val = (buf_data[pos+1] + frac_pos * (buf_data[pos+2] - buf_data[pos+1])) * vol
+                    data[i+1] +=  val * right_gain
+                """
+
+
+                wav_pos += speed
             
         else:  # No channel or more than 2
             return

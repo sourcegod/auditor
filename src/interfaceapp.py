@@ -15,6 +15,8 @@ import audiplayer as aupl
 import midutils as mid
 import audiconf as conf
 import utils as uti
+import logging as log
+log.basicConfig(level=log.DEBUG, filename="/tmp/app.log", filemode='w')
 
 #------------------------------------------------------------------------------
 
@@ -104,6 +106,7 @@ class InterfaceApp(object):
             self.player.init()
             self.audio_driver.start_engine()
             self.start_midi_thread(inport=1, outport=0, func=self._midi_handler)
+            self.stop_log()
 
     #-----------------------------------------
 
@@ -592,8 +595,38 @@ class InterfaceApp(object):
             self.audio_driver.stop_engine()
 
     #-------------------------------------------
-
      
+    def start_log(self):
+        """
+        Starting logging
+        from InterfaceApp object
+        """
+        
+        log.getLogger().setLevel(log.NOTSET)
+
+        if self._parent:
+            msg = "Start logging at level NOTSET"
+            self._parent.display(msg)
+
+
+    #-------------------------------------------
+
+    def stop_log(self):
+        """
+        Stop logging
+        from InterfaceApp object
+        """
+        
+        log.getLogger().setLevel(log.CRITICAL+1)
+
+        if self._parent:
+            msg = "Stop logging."
+            self._parent.display(msg)
+
+
+    #-------------------------------------------
+
+
     def test(self):
         """
         Testing the app
