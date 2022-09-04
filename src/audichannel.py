@@ -659,18 +659,12 @@ class AudiChannel(DspEffect):
         if sound is None: return
         sound_len = sound.get_length() # in frames
         if not sound_len: return
-        wav_pos = self._curpos
         nb_channels = sound._nchannels
        
         if sound.sound_type == 0: # Sample type
             self.mix_sample_data(data, count, sound, sound_len, nb_channels)
-        
         elif sound.sound_type == 1: # Stream type
             self.mix_stream_data(data, count, sound, sound_len, nb_channels)
-            return
-
-    
-        # print("\a")
 
     #-----------------------------------------
 
@@ -681,13 +675,10 @@ class AudiChannel(DspEffect):
         """
 
         curpos = self._curpos
-        nb_channels = sound._nchannels
-       
         vol = self._volume * self._vol_mix
         speed = self._speed
         left_gain = self._left_gain
         right_gain = self._right_gain
-
         buf_data = sound.get_data()
 
         if nb_channels == 1:
