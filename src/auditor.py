@@ -76,7 +76,10 @@ class MainApp(object):
         self.display(msg)
         while 1:
             key = self.win.getch() # pauses until a key's hit
-            if key >=48 and key <=57:
+            # print(f"voici keycode: {key}")
+            if key == 10: # Enter key, for click
+                self.iap.play_mode(0)
+            elif key >=48 and key <=57:
                 num = key -48
                 num += key0
                 if num < len_chan_lst:

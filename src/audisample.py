@@ -836,19 +836,23 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         from AudiSample object
         """
 
+        print(f"freq: {freq}, channels: {self._nchannels}")
         nbsamples *= self._nchannels
         nbsamples = int(nbsamples)
         vol =1
         lst = []
         # period for the sinus function
-        t = 2*pi*freq/(self._rate*self._nchannels)
+        t = 2 * np.pi*freq/(self._rate*self._nchannels)
         # len1 =0.001 # length of samples in miliseconds
         # nbsamples = int(self._rate*self._nchannels*len1)
         # sine wave
+        incr = (2 * np.pi * freq) / (self._rate * self._nchannels)
         if type == 0:
-            for i in range(nbsamples):
-                y = int(vol*self._maxamp*sin(t*i))
-                lst.append(y)
+            # for i in range(nbsamples):
+            # y = vol*self._maxamp*np.sin(t*arr)
+            # lst.append(y)
+            arr = np.arange(nbsamples)
+            self._wav_data = np.sin(incr * arr)
         # square wave
         elif type == 1:
             # get the sign of the angle for square wave with cmp function
@@ -880,7 +884,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             lst = [00]
     
         # self._wavbuf_lst = lst
-        self._wav_data = np.array(lst, dtype='int16')
+        # self._wav_data = np.array(lst, dtype='float32')
         
         # update sound params
         # like nframes, and length sound

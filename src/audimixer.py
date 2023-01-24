@@ -302,8 +302,10 @@ class AudiMixer(object):
 
         # sound musb be created with channel to sync both of them
         # create reserved channel for beep
-        # self.chan_beep = self.create_channel(1000)
-        self.chan_beep = None
+        # self.chan_beep = self.create_channel(0)
+        # test for click metronome on channel 0
+        self.chan_click = self.create_channel(0)
+        snd_click = self.create_tone(freq=220, lensec=5)
     
     #-----------------------------------------
 
@@ -315,6 +317,7 @@ class AudiMixer(object):
 
         # init data
         len_buf = self._len_buf
+        # create empty array for mixing
         data = np.zeros((len_buf, ), dtype=self._out_type)
         # flag = pyaudio.paContinue
         flag_ok = self.audio_driver.flag_ok
@@ -900,7 +903,16 @@ class AudiMixer(object):
 
     #-----------------------------------------
 
-    def beep(self, freq=440, lensec=1, loops=-2):
+    def get_sine_table(self, freq, rate, _len):
+        """ returns array of sine wave """
+        incr = (2 * np.pi * freq) / rate
+        arr = np.arange(_len)
+        return np.sin(incr * arr)
+        
+
+    #-------------------------------------------
+     
+    def beep(self, freq=440, lensec=5, loops=-2):
         """ beep square wave through mixer object
         freq: in hertz
         lensec: in second
@@ -913,11 +925,31 @@ class AudiMixer(object):
         snd = ausam.AudiSample(mode=1) # empty sample
         rate = 44100
         nbsamp = int(lensec * rate)
-        snd = snd.tone(1, freq, nbsamp)
+        snd = snd.tone(0, freq, nbsamp)
         
         # play the beep on the reserved channel
         self.chan_beep.play(snd, loops)
+        # self._sound_lst.append(snd)
+        
+        return snd
 
+    #-----------------------------------------
+
+    def create_tone(self, freq, lensec):
+        """
+        create new tone sound in memory
+        from AudiMixer object
+        """
+
+        snd = ausam.AudiSample(mode=1) # empty sample
+        rate = 44100
+        nbsamp = int(lensec * rate)
+        snd = snd.tone(0, freq, nbsamp)
+        if snd is not None: 
+            self._sound_lst.append(snd)
+
+        return snd
+    
     #-----------------------------------------
 
     def create_sample(self, fname):

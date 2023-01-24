@@ -97,6 +97,7 @@ class InterfaceApp(object):
             self.gen_instru_from_conf()
             self.gen_channels()
             self.gen_instruments()
+
             """
             if self.cacher:
                 self.cacher.preload()
@@ -187,6 +188,7 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
+        self._parent.display(f"play channel, sound: {num,num}")
         if not self.player: return
         mode_num = self._mode_num
         if mode_num in (0, 1, 2, 3):
@@ -309,6 +311,7 @@ class InterfaceApp(object):
     def gen_channels(self):
         """
         Generate default channels and sounds
+        Note: these channels come after Intruments Configuration.
         from InterfaceApp object
         """
 
@@ -323,6 +326,7 @@ class InterfaceApp(object):
         fname8 = path.join(_mediadir, "piano_1.wav")
 
         # in memory
+        # snd0 = self.mixer.beep(freq=880)
         snd1 = self.mixer.create_sample(fname1)
         snd2 = self.mixer.create_sample(fname2)
         snd3 = self.mixer.create_sample(fname3)
@@ -343,12 +347,15 @@ class InterfaceApp(object):
         # in stream
         # mono stream
         snd11 = self.mixer.create_stream(fname6)
-
-        for i in range(11):
+        # for the click temporary
+        # click = self.mixer.create_tone(freq=220, lensec=5)
+        
+        for i in range(12):
             self.mixer.create_channel()
             # chan1.set_volume(16)
             # chan1.set_panning(127, 0)
             pass
+
 
     #-----------------------------------------
     
@@ -395,7 +402,7 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
-        last_index = len(self._instru_lst)
+        last_index = len(self._instru_lst) +1 # +1 for click on channel 0
         id = last_index
         # self._instru_lst = []
         key0 = 36 + last_index
