@@ -5,7 +5,7 @@
     Date: Sun, 17/07/2022
     Author: Coolbrother
 """
-
+import copy
 import numpy as np
 from audibase import AudiSoundBase
 import soundfile as sf
@@ -139,11 +139,11 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
     def __init__(self, mode=0, filename="", bits=16, rate=44100, channels=2, nbsamples=1):
         super(AudiSample, self).__init__()
         self.sound_type =0 # type sample
+        self._wav_data = None
         if mode == 0 and filename: # load sample from file
             self.load(filename)
         elif mode == 1: # create empty sample
             self.init_sample(bits, rate, channels, nbsamples)
-        self._wav_data = None
 
     #-----------------------------------------
     
@@ -248,10 +248,10 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # equiv':
         # all in frames
         if nbsamples == 0:
-            self._wav_data = np.array([], dtype='int16')
+            self._wav_data = np.array([], dtype='float32')
         else:
             nb_zeros = nbsamples * channels
-            self._wav_data = np.zeros(nb_zeros, dtype='int16')
+            self._wav_data = np.zeros(nb_zeros, dtype='float32')
         self._length = self._nframes # * self._nchannels
         
         return self
@@ -265,7 +265,11 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         """
         
         # Todo: more parameters
-        self._nframes = int(len(self._wav_data) / self._nchannels)
+        if self._wav_data is None: 
+            self._nframes =0
+        else:
+            self._nframes = int(len(self._wav_data) / self._nchannels)
+        
         self._length = self._nframes
 
     #-----------------------------------------
@@ -480,10 +484,11 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         start *= self._nchannels
         nbsamples *= self._nchannels
         length = start + nbsamples 
+        if self._wav_data is None: return
         try:
             self._wav_data = self._wav_data[start:length]
         except IndexError:
-            return None
+            return self._wav_data
         
         self.update_sample()        
         
@@ -563,7 +568,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         """
 
         mode =1
-        if self.sound_type == 1:
+        if self.sound_type == 0:
             samp = AudiSample(mode, "", bits, rate, channels, nbsamples)
         elif self.sound_type == 3:
             samp = AudiLoopSample(mode, "", bits, rate, channels, nbsamples)
@@ -761,7 +766,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         new_snd = None
         
         if samp_lst:
-            new_snd = self.copy_sample(nbsamples=0)
+            new_snd = self.copy_sample(nbsamples=1)
             new_lst = new_snd.get_raw_list()
             for snd in samp_lst:
                 data_lst = snd.get_raw_list()

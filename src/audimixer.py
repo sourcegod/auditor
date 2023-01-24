@@ -12,7 +12,7 @@ import audisample as ausam
 import audistream as austr
 import audichannel as auchan
 import audicache as auc
-
+import audimetronome as aumet
 DEBUG =1 
 def debug(msg="", title="", bell=True):
     if DEBUG:
@@ -272,6 +272,7 @@ class AudiMixer(object):
         self.cur_func = None
         self.simple_delay = auchan.SimpleDelay(time=0.5, decay=0.5, rate=44100)
         self.simple_delay._active =1
+        self.metro = aumet.AudiMetronome()
 
     #-----------------------------------------
 
@@ -305,7 +306,10 @@ class AudiMixer(object):
         # self.chan_beep = self.create_channel(0)
         # test for click metronome on channel 0
         self.chan_click = self.create_channel(0)
-        snd_click = self.create_tone(freq=220, lensec=5)
+        self.chan_click.set_looping(1)
+        # snd_click = self.create_tone(freq=220, lensec=5)
+        snd_click = self.metro.gen_click(bpm=100)
+        self._sound_lst.append(snd_click)
     
     #-----------------------------------------
 

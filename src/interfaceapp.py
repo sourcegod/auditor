@@ -188,7 +188,7 @@ class InterfaceApp(object):
         from InterfaceApp object
         """
 
-        self._parent.display(f"play channel, sound: {num,num}")
+        # self._parent.display(f"play channel, sound: {num,num}")
         if not self.player: return
         mode_num = self._mode_num
         if mode_num in (0, 1, 2, 3):
