@@ -23,7 +23,8 @@ class AudiSoundBase(object):
         self._rate =1
         self._nframes =0
         self._bits =1
-        self._maxamp = pow(2, 15) -1 # max amplitude, short 32767
+        # self._maxamp = pow(2, 15) -1 # max amplitude, short 32767
+        self._maxamp =1.0 # for float value
         self._curpos =0
         self._length =0
         self._looping =0

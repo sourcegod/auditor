@@ -848,11 +848,16 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         # sine wave
         incr = (2 * np.pi * freq) / (self._rate * self._nchannels)
         if type == 0:
-            # for i in range(nbsamples):
-            # y = vol*self._maxamp*np.sin(t*arr)
-            # lst.append(y)
+            for i in range(nbsamples):
+                y = vol*self._maxamp*np.sin(t*i)
+                lst.append(y)
+            
+            """
+            # TODO: refactorize it in numpy array way
             arr = np.arange(nbsamples)
             self._wav_data = np.sin(incr * arr)
+            """
+
         # square wave
         elif type == 1:
             # get the sign of the angle for square wave with cmp function
@@ -884,7 +889,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
             lst = [00]
     
         # self._wavbuf_lst = lst
-        # self._wav_data = np.array(lst, dtype='float32')
+        self._wav_data = np.array(lst, dtype='float32')
         
         # update sound params
         # like nframes, and length sound
