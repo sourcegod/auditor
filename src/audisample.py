@@ -841,7 +841,7 @@ class AudiSample(AudiSoundBase): # object is necessary for property function
         from AudiSample object
         """
 
-        print(f"freq: {freq}, channels: {self._nchannels}")
+        # print(f"freq: {freq}, channels: {self._nchannels}")
         nbsamples *= self._nchannels
         nbsamples = int(nbsamples)
         vol =1

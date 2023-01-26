@@ -293,7 +293,7 @@ class AudiMixer(object):
 
         if self.audio_driver:
             self.audio_driver.set_callback(self._audio_callback)
-            self.audio_driver.init_audio(nchannels, rate, format)
+            self.audio_driver.init_audio(nchannels, rate)
             self.audio_driver.set_mixer(self)
         # create cache data
         self.cacher = auc.AudiCache(self)

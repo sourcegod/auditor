@@ -63,11 +63,11 @@ class MainApp(object):
 
     #-------------------------------------------
 
-    def main(self, stdscr, audio_driver=None, output_index=None):
+    def main(self, stdscr, audio_driver=None, input_index=None, output_index=None):
         # stdscr is passing by curses.wrapper function
         self.win = stdscr
         self.iap = intapp.InterfaceApp(self)
-        self.iap.init_app(audio_driver, output_index)
+        self.iap.init_app(audio_driver, input_index, output_index)
         self.mixer = self.iap.mixer
         len_chan_lst = len(self.mixer.get_channels())
         self.player = self.iap.player
@@ -206,9 +206,9 @@ class MainApp(object):
 
 if __name__ == "__main__":
     audio_driver = aup.PortAudioDriver()
+    input_index =0 # external soundcard, and None for default input port
     output_index =6 # 6 # None for default output port
     app = MainApp()
-    # app.init_app(audio_driver=audio_driver, output_index=output_index)
-    curses.wrapper(app.main, audio_driver=audio_driver, output_index=output_index)
+    curses.wrapper(app.main, audio_driver=audio_driver, input_index=input_index, output_index=output_index)
 
 #-------------------------------------------

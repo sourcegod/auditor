@@ -237,10 +237,11 @@ class BaseDriver(object):
 
     #-----------------------------------------
 
-    def set_input_device_index(self, rate, device, channels, format=None):
+    def set_input_device_index(self, device, rate=44100, channels=2):
         """ test if this input device is available
         """
 
+        format = self._format # pyaudio.paFloat32
         res =0
         try:
             res = self._out.is_format_supported(rate, 
@@ -261,17 +262,14 @@ class BaseDriver(object):
     #-----------------------------------------
 
 
-    def set_output_device_index(self, device):
+    def set_output_device_index(self, device, rate=44100, channels=2):
         """ 
         test whether this input device is available
         from BaseDriver object 
         """
 
-        rate=44100
-        channels =2
-        format = None
+        format = self._format # = pyaudio.paFloat32
         res =0
-        """
         try:
             res = self._out.is_format_supported(rate, 
                     output_device=device, output_channels=channels, 
@@ -280,9 +278,7 @@ class BaseDriver(object):
             print(e)
         if res:
             self._output_device_index = device
-        """
 
-        self._output_device_index = device
         
         return res
 
@@ -304,13 +300,14 @@ class PortAudioDriver(BaseDriver):
         self._mixing =0
         self._mixer = None
         self._out = pyaudio.PyAudio()
+        self._format = pyaudio.paFloat32
         self._running = False
         self._initialized = False
 
     #------------------------------------------------------------------------------
 
    
-    def init_audio(self, nchannels=2, rate=44100, format=16):
+    def init_audio(self, nchannels=2, rate=44100):
         """ Open the portaudio device in playback mode through the portaudio driver object 
         """
         
@@ -319,6 +316,7 @@ class PortAudioDriver(BaseDriver):
 
         # default_output = self._out.get_default_host_api_info().get('defaultOutputDevice')
         self._default_output_index = self.get_default_output_device()
+        self._default_input_index = self.get_default_input_device()
         # self._out.get_format_from_width(self.wf.getsampwidth())
         self._format = pyaudio.paFloat32 # pyaudio.paInt16
         self._nchannels = nchannels
@@ -332,7 +330,7 @@ class PortAudioDriver(BaseDriver):
             self._stream = self._out.open(format=self._format,
                         channels=self._nchannels,
                         rate=self._rate,
-                        input=False,
+                        input=True,
                         output=True,
                         input_device_index = self._input_device_index,
                         output_device_index = self._output_device_index,
@@ -348,11 +346,12 @@ class PortAudioDriver(BaseDriver):
 
         if self._stream is None:
             self._output_device_index = self._default_output_index
+            self._input_device_index = self._default_input_index
             try:
                 self._stream = self._out.open(format=self._format,
                             channels=self._nchannels,
                             rate=self._rate,
-                            input=False,
+                            input=True,
                             output=True,
                             input_device_index = self._input_device_index,
                             output_device_index = self._output_device_index,
@@ -400,6 +399,36 @@ class PortAudioDriver(BaseDriver):
 
     #-----------------------------------------
    
+    def querry_devices(self):
+        """
+        display devices info
+        from PortAudioDriver object
+        """
+
+        print(f"Devices list: ")
+        for  item_dic in self.get_device_list():
+            dic = {key: item_dic[key] for key in ["index", "name", "hostApi", "maxInputChannels", "maxOutputChannels"]}
+            for (k, v) in dic.items():
+                if k == "index": print(f"{v}", end=": ")
+                else: print(f"{k}: {v}", end=", ")
+            # print(k, v)
+            print()
+    #-----------------------------------------
+
+    def print_dev_info(self):
+        """
+        display info about devices
+        """
+        
+        self.querry_devices()
+        # print(f"Default input device: {self.get_default_input_device()}")
+        # print(f"Default output device: {self.get_default_output_device()}")
+        print(f"Default index devices: {self._default_input_index, self._default_output_index}")
+        print(f"Input, Output index: {self._input_device_index, self._output_device_index}")
+
+
+    #-----------------------------------------
+
     def set_mixer(self, mixer):
         """
         set the mixer for mixing data
@@ -547,3 +576,20 @@ class PortAudioDriver(BaseDriver):
     #-----------------------------------------
    
 #========================================
+
+def main(input_index=None, output_index=None):
+    audio_driver = PortAudioDriver()
+    if audio_driver:
+        audio_driver.set_input_device_index(input_index)
+        audio_driver.set_output_device_index(output_index)
+        audio_driver.init_audio()
+    
+    audio_driver.print_dev_info()
+
+#-----------------------------------------
+
+if __name__ == "__main__":
+    input_index =0 # default soundcard
+    output_index = 6 # External soundcard
+    main(input_index, output_index)
+    input("Tapez Enter...")

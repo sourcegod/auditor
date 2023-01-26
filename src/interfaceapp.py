@@ -79,7 +79,7 @@ class InterfaceApp(object):
 
     #-----------------------------------------
     
-    def init_app(self, audio_driver=None, output_index=None):
+    def init_app(self, audio_driver=None, input_index=None, output_index=None):
         """
         init app
         from InterfaceApp object
@@ -87,6 +87,7 @@ class InterfaceApp(object):
 
         self.audio_driver = audio_driver # aup.PortAudioDriver()
         if self.audio_driver:
+            self.audio_driver.set_input_device_index(input_index)
             self.audio_driver.set_output_device_index(output_index)
             self.audio_driver.parent = self
         self.player = aupl.AudiPlayer(audio_driver=self.audio_driver)
