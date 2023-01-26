@@ -399,20 +399,23 @@ class PortAudioDriver(BaseDriver):
 
     #-----------------------------------------
    
-    def querry_devices(self):
+    def query_devices(self):
         """
         display devices info
         from PortAudioDriver object
         """
 
+        
         print(f"Devices list: ")
-        for  item_dic in self.get_device_list():
-            dic = {key: item_dic[key] for key in ["index", "name", "hostApi", "maxInputChannels", "maxOutputChannels"]}
-            for (k, v) in dic.items():
-                if k == "index": print(f"{v}", end=": ")
-                else: print(f"{k}: {v}", end=", ")
-            # print(k, v)
-            print()
+        for  (index, item) in enumerate(self.get_device_list()):
+            mark = ""
+            host_index = item['hostApi']
+            host_name = self.get_driver_names()[host_index][1]
+            if item['name'] == "default": mark = "*"
+            print(f"{mark} {item['index']} {item['name']},", 
+                f"{host_name} ({item['maxInputChannels']} In, {item['maxOutputChannels']} Out)")
+
+
     #-----------------------------------------
 
     def print_dev_info(self):
@@ -420,9 +423,10 @@ class PortAudioDriver(BaseDriver):
         display info about devices
         """
         
-        self.querry_devices()
+        self.query_devices()
         # print(f"Default input device: {self.get_default_input_device()}")
         # print(f"Default output device: {self.get_default_output_device()}")
+        print("Devices info")
         print(f"Default index devices: {self._default_input_index, self._default_output_index}")
         print(f"Input, Output index: {self._input_device_index, self._output_device_index}")
 
